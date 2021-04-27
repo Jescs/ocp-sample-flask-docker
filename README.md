@@ -123,7 +123,7 @@ Process is based on [Publish Container Images to Docker Hub / Image registry wit
 
 * [Register for a Docker ID](https://docs.docker.com/docker-id/)
 * [Register for RedHat Quay.IO](https://access.redhat.com/articles/quayio-help)
-* [StackHhare.IO: Alternatives to Docker Hub](https://stackshare.io/docker-hub/alternatives)
+* [StackShare.IO: Alternatives to Docker Hub](https://stackshare.io/docker-hub/alternatives)
 
 Login into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `ocp-sample-flask-docker`.
 
