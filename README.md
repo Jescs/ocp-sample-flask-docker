@@ -79,12 +79,13 @@ Download the python docker images, notice how much bigger the `python:3` image i
 Use the `python:3-alpine` unless you have need for a full python environment.
 
 ```bash
-$ podman images
+$ podman images  # repo is empty
 REPOSITORY  TAG     IMAGE ID  CREATED  SIZE
+
 $ podman pull docker.io/library/python:3-alpine
 $ podman pull docker.io/library/python:3
 
-$ podman images
+$ podman images  # repo now has python docker images
 REPOSITORY                TAG       IMAGE ID      CREATED      SIZE
 docker.io/library/python  3-alpine  1ae28589e5d4  11 days ago  47.6 MB
 docker.io/library/python  3         49e3c70d884f  2 weeks ago  909 MB
