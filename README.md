@@ -21,6 +21,13 @@ Other useful references:
 * [OpenShiftDemos: os-sample-python](https://github.com/OpenShiftDemos/os-sample-python)
 * [Publish Container Images to Docker Hub / Image registry with Podman](https://computingforgeeks.com/how-to-publish-docker-image-to-docker-hub-with-podman/)
 
+Fedora 33 was the platform used for this project, which has deprecated `docker` by `podman`, which is command-line compatible.
+
+For other platforms, either `alias podman=docker` or replace `podman` with `docker` in the examples.
+
+* [Transitioning from Docker to Podman](https://developers.redhat.com/blog/2020/11/19/transitioning-from-docker-to-podman/)
+ 
+
 ## Docker File
 
 ```bash
@@ -114,6 +121,10 @@ $ podman rm loving_elgamal   # delete it
 
 Process is based on [Publish Container Images to Docker Hub / Image registry with Podman](https://computingforgeeks.com/how-to-publish-docker-image-to-docker-hub-with-podman/)
 
+* [Register for a Docker ID](https://docs.docker.com/docker-id/)
+* [Register for RedHat Quay.IO](https://access.redhat.com/articles/quayio-help)
+* [StackHhare.IO: Alternatives to Docker Hub](https://stackshare.io/docker-hub/alternatives)
+
 Login into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `ocp-sample-flask-docker`.
 
 ```bash
@@ -165,12 +176,23 @@ To obtain the default CRC ``kubeadmin`` password, run ``crc console --credential
 ```bash
 $ oc login -u kubeadmin -p <password> https://api.crc.testing:6443
 $ oc whoami                                                    # kubeadmin
-$ oc new-project sample-flask-s2i                              # create OCP project
-$ oc new-app https://github.com/sjfke/ocp-sample-flask-s2i.git # s2i deploy direct from git repo
-$ oc expose service/ocp-sample-flask-s2i                       # make accessible outside OCP.
+$ oc new-project sample-flask-docker
+
+$ podman images
+REPOSITORY                               TAG       IMAGE ID      CREATED       SIZE
+docker.io/sjfke/ocp-sample-flask-docker  latest    a0b942e81674  14 hours ago  59.3 MB
+localhost/sjfke/ocp-sample-flask-docker  latest    a0b942e81674  14 hours ago  59.3 MB
+localhost/quick-brown-fox                latest    a0b942e81674  14 hours ago  59.3 MB
+docker.io/library/python                 3-alpine  1ae28589e5d4  12 days ago   47.6 MB
+docker.io/library/python                 3         49e3c70d884f  2 weeks ago   909 MB
+
+$ oc new-app docker.io/sjfke/ocp-sample-flask-docker
+$ oc status
+$ oc expose service/ocp-sample-flask-docker  # route.route.openshift.io/ocp-sample-flask-docker exposed
+
 ```
 
-Once the application deployment is finished then it will be accessible as [ocp-sample-flask-s2i](http://ocp-sample-flask-s2i-sample-flask-s2i.apps-crc.testing).
+Once the application deployment is finished then it will be accessible as [ocp-sample-flask-docker](http://ocp-sample-flask-docker-sample-flask-docker.apps-crc.testing/).
 
 From the OpenShift Console WebUI:
 
@@ -181,76 +203,66 @@ From the OpenShift Console WebUI:
 ## Undeployment Steps
 
 ```bash
-$ oc get all --selector app=ocp-sample-flask-s2i     # list everything associated with the app
-$ oc delete all --selector app=ocp-sample-flask-s2i  # delete everything associated with the app
+$ oc get all --selector app=ocp-sample-flask-docker     # list everything associated with the app
+$ oc delete all --selector app=ocp-sample-flask-docker  # delete everything associated with the app
 ```
 
 ## Example output from various commands
 
-Example derived from:
+### Output of `oc new-app`
 
-1. [RH: Getting Started With Python](https://www.openshift.com/blog/getting-started-python)
-2. [OpenShiftDemos: os-sample-python](https://github.com/OpenShiftDemos/os-sample-python)
-
-Ancillary documents consulted:
-
-* [Markdown Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
-
-
-3. [Getting Started With Flask, A Python Microframework](https://scotch.io/tutorials/getting-started-with-flask-a-python-microframework)
-4. [Gunicorn ‘Green Unicorn’ is a Python WSGI HTTP Server for UNIX](https://docs.gunicorn.org/en/stable/)
+**Notice:** the labels from the Dockerfile, which were not set to anything sensible.
 
 ```bash
-$ oc new-project sample-flask-docker
-$ podman build --tag sample-flask-docker -f Dockerfile 
-$ podman images
+$ oc new-app docker.io/sjfke/ocp-sample-flask-docker
+--> Found container image a0b942e (14 hours old) from docker.io for "docker.io/sjfke/ocp-sample-flask-docker"
+
+    builder x.y.z 
+    ------------- 
+    Platform for building xyz
+
+    Tags: builder, x.y.z, etc.
+
+    * An image stream tag will be created as "ocp-sample-flask-docker:latest" that will track this image
+
+--> Creating resources ...
+    imagestream.image.openshift.io "ocp-sample-flask-docker" created
+    deployment.apps "ocp-sample-flask-docker" created
+    service "ocp-sample-flask-docker" created
+--> Success
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose service/ocp-sample-flask-docker' 
+    Run 'oc status' to view your app.
 ```
+
+### Output of `oc status`
 
 ```bash
-/opt/app-root/bin/python3.8 /opt/app-root/bin/gunicorn wsgi --bind=0.0.0.0:8080 --access-logfile=- --config config.py
-# Access POD via Web interface
-https://console-openshift-console.apps-crc.testing/k8s/ns/default/pods/flask-69dbc7dc4-pglrp
-# Access POD via command line
-oc rsh flask-69dbc7dc4-pglrp
+$ oc status
+In project sample-flask-docker on server https://api.crc.testing:6443
+
+svc/ocp-sample-flask-docker - 10.217.5.163:8080
+  deployment/ocp-sample-flask-docker deploys istag/ocp-sample-flask-docker:latest 
+    deployment #2 running for 42 seconds - 1 pod
+    deployment #1 deployed 44 seconds ago
+
+
+1 info identified, use 'oc status --suggest' to see details.
 ```
 
-So the source in reference 3 needs to be reorganized to work with `gunicorn`.
+### Output of `oc get all`
 
 ```bash
-tree
-.
-├── config.py
-├── LICENSE
-├── Pipfile
-├── Pipfile.lock
-├── __pycache__
-│   ├── ...
-│   └── ...
-├── README.md
-├── requirements.txt
-├── static
-├── templates
-│   ├── about.html
-│   ├── base.html
-│   └── index.html
-└── wsgi.py
+gcollis@morpheus work07]$ oc get all --selector app=ocp-sample-flask-docker
+NAME                              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+service/ocp-sample-flask-docker   ClusterIP   10.217.5.163   <none>        8080/TCP   10m
+
+NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/ocp-sample-flask-docker   1/1     1            1           10m
+
+NAME                                                     IMAGE REPOSITORY                                                                                      TAGS     UPDATED
+imagestream.image.openshift.io/ocp-sample-flask-docker   default-route-openshift-image-registry.apps-crc.testing/sample-flask-docker/ocp-sample-flask-docker   latest   10 minutes ago
+
+NAME                                               HOST/PORT                                                      PATH   SERVICES                  PORT       TERMINATION   WILDCARD
+route.route.openshift.io/ocp-sample-flask-docker   ocp-sample-flask-docker-sample-flask-docker.apps-crc.testing          ocp-sample-flask-docker   8080-tcp                 None
 ```
-
-```bash
-cd $HOME/work00
-crc console --credentials      # get the CRC credentials
-oc login -u kubeadmin -p T3sJD-jjueE-2BnHe-ftNBw https://api.crc.testing:6443
-oc whoami                      # kube:admin
-crc console                    # starts web-console, login as kube:admin, using the credentials
-
-oc new-project flask-test                            # create new project
-oc new-app https://github.com/sjfke/ocp-sample-flask # deploy to OCP directly from GitHub
-```
-
-This worked, displaying the example pages as in reference 3.
-
-## Docker / Helm  deployment.
-
-This requires building a `Docker` image, deploying it to  a complete rework of the git-hub project structure.
-5. [Podman a daemonless container engine for developing, managing, and running OCI Containers on Linux](https://podman.io/)
-6. [Publish Container Images to Docker Hub / Image registry with Podman](https://computingforgeeks.com/how-to-publish-docker-image-to-docker-hub-with-podman/)
