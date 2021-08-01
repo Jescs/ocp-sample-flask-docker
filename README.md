@@ -17,7 +17,8 @@ need to be satisfied for this to work are:
 
 The example is based on [Getting Started with Flask](https://scotch.io/tutorials/getting-started-with-flask-a-python-microframework) but has 
 been modified to work [Green Unicorn - WSGI sever](https://docs.gunicorn.org/en/stable/) and the content of the web-site 
-changed to provide some [Lorem Ipsum](https://en.wikipedia.org/wiki/Lorem_ipsum) pages from [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/)
+changed to provide some [Lorem Ipsum](https://en.wikipedia.org/wiki/Lorem_ipsum) pages from [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/), 
+and `isalive` and `isready` probe pages have been added for Kubernetes.
 
 Other useful references:
 
@@ -127,7 +128,8 @@ USER        PID         PPID        %CPU        ELAPSED          TTY         TIM
 1001        2           1           0.000       10m5.764988831s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
 
 # Test fetching the application home page.
-$ curl localhost:8080       # test it works
+$ curl localhost:8080
+$ firefox localhost:8080
 
 # Stop and Delete the Docker container
 $ podman stop lazy-dog
@@ -154,38 +156,56 @@ Login into [DockerHub](https://hub.docker.com/), using your credentials, and cre
 ```bash
 $ podman login docker.io  # sjfke/password; use your own login and password :-)
 
-$ podman build --tag sjfke/ocp-sample-flask-docker -f ./Dockerfile # use your own DockerHub account :-)
+# Use your own DockerHub account (not mine, sjfke) :-)
+$ podman build --tag sjfke/ocp-sample-flask-docker -f ./Dockerfile        # tagged as latest
+$ podman build --tag sjfke/ocp-sample-flask-docker:v0.1.0 -f ./Dockerfile # tagged as v0.1.0
 
-$ podman images
-REPOSITORY                               TAG       IMAGE ID      CREATED         SIZE
-localhost/sjfke/ocp-sample-flask-docker  latest    a0b942e81674  34 minutes ago  59.3 MB
-localhost/quick-brown-fox                latest    a0b942e81674  34 minutes ago  59.3 MB
-docker.io/library/python                 3-alpine  1ae28589e5d4  11 days ago     47.6 MB
-docker.io/library/python                 3         49e3c70d884f  2 weeks ago     909 MB
+$ podman images  # notice the 'IMAGE ID' is the same 
+REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
+localhost/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  45 minutes ago  60.5 MB
+localhost/sjfke/ocp-sample-flask-docker  latest      67a7cd06b95d  45 minutes ago  60.5 MB
+localhost/quick-brown-fox                latest      67a7cd06b95d  45 minutes ago  60.5 MB
+docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
+docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
 
-$ podman push sjfke/ocp-sample-flask-docker # push to DockerHub
+$ podman push sjfke/ocp-sample-flask-docker:v0.1.0 # push v0.1.0 image to DockerHub
 
-$ podman pull docker.io/sjfke/ocp-sample-flask-docker:latest # test pull from DockerHub
+$ podman pull docker.io/sjfke/ocp-sample-flask-docker:v0.1.0 # Pull from DockerHub (docker.io - prefix)
 
-$ podman images
-REPOSITORY                               TAG       IMAGE ID      CREATED         SIZE
-docker.io/sjfke/ocp-sample-flask-docker  latest    a0b942e81674  38 minutes ago  59.3 MB
-localhost/sjfke/ocp-sample-flask-docker  latest    a0b942e81674  38 minutes ago  59.3 MB
-localhost/quick-brown-fox                latest    a0b942e81674  38 minutes ago  59.3 MB
-docker.io/library/python                 3-alpine  1ae28589e5d4  11 days ago     47.6 MB
-docker.io/library/python                 3         49e3c70d884f  2 weeks ago     909 MB
+$ podman images  # notice the 'IMAGE ID' is the same 
+REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
+docker.io/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  49 minutes ago  60.5 MB
+localhost/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  49 minutes ago  60.5 MB
+localhost/sjfke/ocp-sample-flask-docker  latest      67a7cd06b95d  49 minutes ago  60.5 MB
+localhost/quick-brown-fox                latest      67a7cd06b95d  49 minutes ago  60.5 MB
+docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
+docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
 
-$ podman run -dt -p 8080:8080 docker.io/sjfke/ocp-sample-flask-docker
+$ podman run -dt -p 8080:8080 --name 'cool_cat' docker.io/sjfke/ocp-sample-flask-docker:v0.1.0
 
 $ podman ps
-CONTAINER ID  IMAGE                                    COMMAND               CREATED        STATUS            PORTS                   NAMES
-9d947dc054e0  docker.io/sjfke/ocp-sample-flask-docker  /bin/sh -c gunico...  3 minutes ago  Up 3 minutes ago  0.0.0.0:8080->8080/tcp  hopeful_cray
+CONTAINER ID  IMAGE                                           COMMAND               CREATED         STATUS             PORTS                   NAMES
+06b1e7181459  docker.io/sjfke/ocp-sample-flask-docker:v0.1.0  /bin/sh -c gunico...  10 seconds ago  Up 10 seconds ago  0.0.0.0:8080->8080/tcp  cool_cat
 
 $ curl localhost:8080       # test it works
+$ firefox 127.0.0.1:8080    # test it works
 
-$ podman stop hopeful_cray  # hopeful_cray
-$ podman rm hopeful_cray    # 9d947dc054e0a7f12b24720abc83f4868bfc21bdd0e399af696b2bac023d5d07
-```
+$ podman stop cool_cat  
+$ podman rm cool_cat
+
+$ podman stop cool_cat
+$ podman rm cool_cat
+$ podman ps
+CONTAINER ID  IMAGE       COMMAND     CREATED     STATUS      PORTS       NAMES
+
+$ podman rmi docker.io/sjfke/ocp-sample-flask-docker:v0.1.0  # delete docker.io version
+$ podman images # now only 3 local images
+REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
+localhost/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  59 minutes ago  60.5 MB
+localhost/sjfke/ocp-sample-flask-docker  latest      67a7cd06b95d  59 minutes ago  60.5 MB
+localhost/quick-brown-fox                latest      67a7cd06b95d  59 minutes ago  60.5 MB
+docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
+docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
 
 ## Deployment Steps
 
