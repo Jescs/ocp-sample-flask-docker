@@ -1,17 +1,23 @@
 # Simple Flask Example
 
-This repository provides a sample Python web application implemented using the Flask web framework and hosted using ``gunicorn``. It is intended to be used to demonstrate deployment of Python web applications to OpenShift 4 using [Podman](https://podman.io/) whose command-line is 100% with [Docker](https://docs.docker.com/get-started/overview/) in fact the suggestion is to ``$ alias docker=podman #``.
+This repository provides a simple Python web application implemented using the Flask web framework and executed using 
+``gunicorn``. It is intended to be used to demonstrate deployment of Python web applications to OpenShift 4 using 
+[Podman](https://podman.io/) whose command-line is 100% compatible with [Docker](https://docs.docker.com/get-started/overview/) 
+in fact the suggestion in the documentation is to ``$ alias docker=podman #`` for compatibility with Docker scripts.
 
 
 ## Implementation Notes
 
-This sample Python application deploys a WSGI application using the ``gunicorn`` WSGI server. The requirements which need to be satisfied for this to work are:
+This sample Python application deploys a WSGI application using the ``gunicorn`` WSGI server. The requirements which 
+need to be satisfied for this to work are:
 
 * The WSGI application code file needs to be named ``wsgi.py``.
 * The WSGI application entry point within the code file needs to be named ``application``.
 * The ``gunicorn`` package must be listed in the ``requirements.txt`` file for ``pip``.
 
-The example is based on [Getting Started with Flask](https://scotch.io/tutorials/getting-started-with-flask-a-python-microframework) but has been modified to work [Green Unicorn - WSGI sever](https://docs.gunicorn.org/en/stable/).
+The example is based on [Getting Started with Flask](https://scotch.io/tutorials/getting-started-with-flask-a-python-microframework) but has 
+been modified to work [Green Unicorn - WSGI sever](https://docs.gunicorn.org/en/stable/) and the content of the web-site 
+changed to provide some [Lorem Ipsum](https://en.wikipedia.org/wiki/Lorem_ipsum) pages from [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/)
 
 Other useful references:
 
@@ -75,8 +81,7 @@ CMD gunicorn -b 0.0.0.0:${PORT} wsgi
 
 ## Local Build and Test
 
-Download the python docker images, notice how much bigger the `python:3` image is.
-Use the `python:3-alpine` unless you have need for a full python environment.
+Download, `podman pull`, the python docker images, `python3` and `python3-alpine`.
 
 ```bash
 $ podman images  # repo is empty
@@ -90,8 +95,11 @@ REPOSITORY                TAG       IMAGE ID      CREATED      SIZE
 docker.io/library/python  3-alpine  1ae28589e5d4  11 days ago  47.6 MB
 docker.io/library/python  3         49e3c70d884f  2 weeks ago  909 MB
 ```
+Notice how much bigger the `python:3` image is. Unless you require a full python environment, use the `python:3-alpine`.
 
-Build and test the local docker image.
+Build and test the local docker image, notice the image is tagged `quick-brown-fox`, and the container `lazy-dog`.
+
+Omitting the `--name` in the `podman run` command, and `--name` will be [auto-generated](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go).
 
 ```bash
 $ podman build --tag quick-brown-fox -f ./Dockerfile
@@ -102,20 +110,32 @@ localhost/quick-brown-fox  latest    a0b942e81674  15 seconds ago  59.3 MB
 docker.io/library/python   3-alpine  1ae28589e5d4  11 days ago     47.6 MB
 docker.io/library/python   3         49e3c70d884f  2 weeks ago     909 MB
 
-$ podman run -dt -p 8080:8080/tcp localhost/quick-brown-fox
+$ podman run -dt -p 8080:8080/tcp --name 'lazy-dog' localhost/quick-brown-fox
 eae5c4d5e893376c6d6921f627b45720c09b7da98e8d672d80aac3a0cb95eae3
 
+# Check the Docker container is up and running.
 $ podman ps -a
-CONTAINER ID  IMAGE                      COMMAND               CREATED        STATUS            PORTS                   NAMES
-eae5c4d5e893  localhost/quick-brown-fox  /bin/sh -c gunico...  2 minutes ago  Up 3 seconds ago  0.0.0.0:8080->8080/tcp  loving_elgamal
+CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS             PORTS                   NAMES
+f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  10 seconds ago  Up 11 seconds ago  0.0.0.0:8080->8080/tcp  lazy-dog
 
+$ podman top lazy-dog
+USER        PID         PPID        %CPU        ELAPSED          TTY         TIME        COMMAND
+1001        1           0           0.000       10m6.764894348s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
+1001        2           1           0.000       10m5.764988831s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
+
+# Test fetching the application home page.
 $ curl localhost:8080       # test it works
 
-$ podman stop loving_elgamal
-CONTAINER ID  IMAGE                      COMMAND               CREATED        STATUS                    PORTS                   NAMES
-eae5c4d5e893  localhost/quick-brown-fox  /bin/sh -c gunico...  4 minutes ago  Exited (0) 7 seconds ago  0.0.0.0:8080->8080/tcp  loving_elgamal
+# Stop and Delete the Docker container
+$ podman stop lazy-dog
+lazy-dog
 
-$ podman rm loving_elgamal   # delete it
+$ podman ps -a
+CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS                     PORTS                   NAMES
+f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  11 minutes ago  Exited (0) 14 seconds ago  0.0.0.0:8080->8080/tcp  lazy-dog
+
+$ podman rm lazy-dog
+f3792a298b807a86a76932061175519537e9f311fdb8c1ad50cb3cd5fac41125
 ```
 
 ## DockerHub Build and Test
