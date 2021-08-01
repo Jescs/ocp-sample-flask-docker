@@ -45,10 +45,13 @@ FROM python:3-alpine
 # ENV BUILDER_VERSION 1.0
 
 # TODO: Set labels used in OpenShift to describe the builder image
-LABEL io.k8s.description="Platform for building xyz" \
-      io.k8s.display-name="builder x.y.z" \
+LABEL io.k8s.name="Flask" \
+      io.k8s.description="Lorem Ipsum Flask Application for Docker" \
+      io.k8s.display-name="Lorem Ipsum" \
+      io.k8s.version="0.1.0" \
       io.openshift.expose-services="8080:http" \
-      io.openshift.tags="builder,x.y.z,etc."
+      io.openshift.tags="Lorem Ipsum,0.1.0,Flask"
+
 
 ENV PORT=8080
 WORKDIR /usr/src/app
