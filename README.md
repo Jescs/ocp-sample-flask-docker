@@ -101,7 +101,7 @@ docker.io/library/python  3         49e3c70d884f  2 weeks ago  909 MB
 ```
 Notice how much bigger the `python:3` image is. Unless you require a full python environment, use the `python:3-alpine`.
 
-Build and test the local docker image, notice the image is tagged `quick-brown-fox`, and the container `lazy-dog`.
+Build and test the local docker image, notice the image is tagged `quick-brown-fox`, and the container `lazy_dog`.
 
 Omitting the `--name` in the `podman run` command, and `--name` will be [auto-generated](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go).
 
@@ -114,15 +114,15 @@ localhost/quick-brown-fox  latest    a0b942e81674  15 seconds ago  59.3 MB
 docker.io/library/python   3-alpine  1ae28589e5d4  11 days ago     47.6 MB
 docker.io/library/python   3         49e3c70d884f  2 weeks ago     909 MB
 
-$ podman run -dt -p 8080:8080/tcp --name 'lazy-dog' localhost/quick-brown-fox
+$ podman run -dt -p 8080:8080/tcp --name 'lazy_dog' localhost/quick-brown-fox
 eae5c4d5e893376c6d6921f627b45720c09b7da98e8d672d80aac3a0cb95eae3
 
 # Check the Docker container is up and running.
 $ podman ps -a
 CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS             PORTS                   NAMES
-f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  10 seconds ago  Up 11 seconds ago  0.0.0.0:8080->8080/tcp  lazy-dog
+f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  10 seconds ago  Up 11 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
 
-$ podman top lazy-dog
+$ podman top lazy_dog
 USER        PID         PPID        %CPU        ELAPSED          TTY         TIME        COMMAND
 1001        1           0           0.000       10m6.764894348s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
 1001        2           1           0.000       10m5.764988831s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
@@ -132,14 +132,14 @@ $ curl localhost:8080
 $ firefox localhost:8080
 
 # Stop and Delete the Docker container
-$ podman stop lazy-dog
-lazy-dog
+$ podman stop lazy_dog
+lazy_dog
 
 $ podman ps -a
 CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS                     PORTS                   NAMES
-f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  11 minutes ago  Exited (0) 14 seconds ago  0.0.0.0:8080->8080/tcp  lazy-dog
+f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  11 minutes ago  Exited (0) 14 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
 
-$ podman rm lazy-dog
+$ podman rm lazy_dog
 f3792a298b807a86a76932061175519537e9f311fdb8c1ad50cb3cd5fac41125
 ```
 
@@ -476,17 +476,17 @@ $ rm mychart/templates/NOTES.txt.cln
 $ helm list
 NAME	NAMESPACE	REVISION	UPDATED	STATUS	CHART	APP VERSION
 
-$ helm install --dry-run --debug lazy-dog ./mychart # check
+$ helm install --dry-run --debug lazy_dog ./mychart # check
 
-$ helm install lazy-dog ./mychart
-NAME: lazy-dog
+$ helm install lazy_dog ./mychart
+NAME: lazy_dog
 LAST DEPLOYED: Wed May  5 15:06:10 2021
 NAMESPACE: sample-flask-docker
 STATUS: deployed
 REVISION: 1
 NOTES:
 1. Get the application URL by running these commands:
-  export POD_NAME=$(oc get pods --namespace sample-flask-docker -l "app.kubernetes.io/name=mychart,app.kubernetes.io/instance=lazy-dog" -o jsonpath="{.items[0].metadata.name}")
+  export POD_NAME=$(oc get pods --namespace sample-flask-docker -l "app.kubernetes.io/name=mychart,app.kubernetes.io/instance=lazy_dog" -o jsonpath="{.items[0].metadata.name}")
   export CONTAINER_PORT=$(oc get pod --namespace sample-flask-docker $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
   echo "Visit http://127.0.0.1:8080 to use your application"
   oc --namespace sample-flask-docker port-forward $POD_NAME 8080:$CONTAINER_PORT
@@ -494,17 +494,17 @@ NOTES:
 $ oc status
 In project sample-flask-docker on server https://api.crc.testing:6443
 
-svc/lazy-dog-mychart - 10.217.5.73:8080 -> http
-  deployment/lazy-dog-mychart deploys docker.io/sjfke/ocp-sample-flask-docker:latest
+svc/lazy_dog-mychart - 10.217.5.73:8080 -> http
+  deployment/lazy_dog-mychart deploys docker.io/sjfke/ocp-sample-flask-docker:latest
     deployment #1 running for 10 seconds - 0/1 pods
 
 View details with 'oc describe <resource>/<name>' or list resources with 'oc get all'.
 
 $ helm list
 NAME    	NAMESPACE          	REVISION	UPDATED                                 	STATUS  	CHART        	APP VERSION
-lazy-dog	sample-flask-docker	1       	2021-05-05 15:06:10.156623992 +0200 CEST	deployed	mychart-0.1.0	0.1.0      
+lazy_dog	sample-flask-docker	1       	2021-05-05 15:06:10.156623992 +0200 CEST	deployed	mychart-0.1.0	0.1.0      
 
-$ helm get manifest lazy-dog # check the manifest
+$ helm get manifest lazy_dog # check the manifest
 
 
 $ oc whoami   # kubeadmin
@@ -512,20 +512,20 @@ $ oc project  # Using project "sample-flask-docker" on server "https://api.crc.t
 
 $ oc get all
 NAME                                    READY   STATUS    RESTARTS   AGE
-pod/lazy-dog-mychart-5446c598d5-vd8xs   1/1     Running   0          55m
+pod/lazy_dog-mychart-5446c598d5-vd8xs   1/1     Running   0          55m
 
 NAME                       TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
-service/lazy-dog-mychart   ClusterIP   10.217.5.73   <none>        8080/TCP   55m
+service/lazy_dog-mychart   ClusterIP   10.217.5.73   <none>        8080/TCP   55m
 
 NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/lazy-dog-mychart   1/1     1            1           55m
+deployment.apps/lazy_dog-mychart   1/1     1            1           55m
 
 NAME                                          DESIRED   CURRENT   READY   AGE
-replicaset.apps/lazy-dog-mychart-5446c598d5   1         1         1       55m
+replicaset.apps/lazy_dog-mychart-5446c598d5   1         1         1       55m
 
-$ oc expose service/lazy-dog-mychart  # route.route.openshift.io/lazy-dog-mychart exposed
+$ oc expose service/lazy_dog-mychart  # route.route.openshift.io/lazy_dog-mychart exposed
 
-$ firefox http://lazy-dog-mychart-sample-flask-docker.apps-crc.testing/
+$ firefox http://lazy_dog-mychart-sample-flask-docker.apps-crc.testing/
 ```
 
 ## Uninstall Helm Chart
@@ -533,9 +533,9 @@ $ firefox http://lazy-dog-mychart-sample-flask-docker.apps-crc.testing/
 ```bash
 $ helm list
 NAME    	NAMESPACE          	REVISION	UPDATED                                 	STATUS  	CHART        	APP VERSION
-lazy-dog	sample-flask-docker	1       	2021-05-05 15:06:10.156623992 +0200 CEST	deployed	mychart-0.1.0	0.1.0      
+lazy_dog	sample-flask-docker	1       	2021-05-05 15:06:10.156623992 +0200 CEST	deployed	mychart-0.1.0	0.1.0      
 
-$ helm uninstall lazy-dog # release "lazy-dog" uninstalled
+$ helm uninstall lazy_dog # release "lazy_dog" uninstalled
 
 $ helm list -all
 NAME	NAMESPACE	REVISION	UPDATED	STATUS	CHART	APP VERSION
