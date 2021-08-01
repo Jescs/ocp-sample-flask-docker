@@ -17,7 +17,8 @@ need to be satisfied for this to work are:
 
 The example is based on [Getting Started with Flask](https://scotch.io/tutorials/getting-started-with-flask-a-python-microframework) but has 
 been modified to work [Green Unicorn - WSGI sever](https://docs.gunicorn.org/en/stable/) and the content of the web-site 
-changed to provide some [Lorem Ipsum](https://en.wikipedia.org/wiki/Lorem_ipsum) pages from [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/)
+changed to provide some [Lorem Ipsum](https://en.wikipedia.org/wiki/Lorem_ipsum) pages from [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/), 
+and `isalive` and `isready` probe pages have been added for Kubernetes.
 
 Other useful references:
 
@@ -100,7 +101,7 @@ docker.io/library/python  3         49e3c70d884f  2 weeks ago  909 MB
 ```
 Notice how much bigger the `python:3` image is. Unless you require a full python environment, use the `python:3-alpine`.
 
-Build and test the local docker image, notice the image is tagged `quick-brown-fox`, and the container `lazy-dog`.
+Build and test the local docker image, notice the image is tagged `quick-brown-fox`, and the container `lazy_dog`.
 
 Omitting the `--name` in the `podman run` command, and `--name` will be [auto-generated](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go).
 
@@ -113,31 +114,32 @@ localhost/quick-brown-fox  latest    a0b942e81674  15 seconds ago  59.3 MB
 docker.io/library/python   3-alpine  1ae28589e5d4  11 days ago     47.6 MB
 docker.io/library/python   3         49e3c70d884f  2 weeks ago     909 MB
 
-$ podman run -dt -p 8080:8080/tcp --name 'lazy-dog' localhost/quick-brown-fox
+$ podman run -dt -p 8080:8080/tcp --name 'lazy_dog' localhost/quick-brown-fox
 eae5c4d5e893376c6d6921f627b45720c09b7da98e8d672d80aac3a0cb95eae3
 
 # Check the Docker container is up and running.
 $ podman ps -a
 CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS             PORTS                   NAMES
-f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  10 seconds ago  Up 11 seconds ago  0.0.0.0:8080->8080/tcp  lazy-dog
+f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  10 seconds ago  Up 11 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
 
-$ podman top lazy-dog
+$ podman top lazy_dog
 USER        PID         PPID        %CPU        ELAPSED          TTY         TIME        COMMAND
 1001        1           0           0.000       10m6.764894348s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
 1001        2           1           0.000       10m5.764988831s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
 
 # Test fetching the application home page.
-$ curl localhost:8080       # test it works
+$ curl localhost:8080
+$ firefox localhost:8080
 
 # Stop and Delete the Docker container
-$ podman stop lazy-dog
-lazy-dog
+$ podman stop lazy_dog
+lazy_dog
 
 $ podman ps -a
 CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS                     PORTS                   NAMES
-f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  11 minutes ago  Exited (0) 14 seconds ago  0.0.0.0:8080->8080/tcp  lazy-dog
+f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  11 minutes ago  Exited (0) 14 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
 
-$ podman rm lazy-dog
+$ podman rm lazy_dog
 f3792a298b807a86a76932061175519537e9f311fdb8c1ad50cb3cd5fac41125
 ```
 
@@ -154,38 +156,56 @@ Login into [DockerHub](https://hub.docker.com/), using your credentials, and cre
 ```bash
 $ podman login docker.io  # sjfke/password; use your own login and password :-)
 
-$ podman build --tag sjfke/ocp-sample-flask-docker -f ./Dockerfile # use your own DockerHub account :-)
+# Use your own DockerHub account (not mine, sjfke) :-)
+$ podman build --tag sjfke/ocp-sample-flask-docker -f ./Dockerfile        # tagged as latest
+$ podman build --tag sjfke/ocp-sample-flask-docker:v0.1.0 -f ./Dockerfile # tagged as v0.1.0
 
-$ podman images
-REPOSITORY                               TAG       IMAGE ID      CREATED         SIZE
-localhost/sjfke/ocp-sample-flask-docker  latest    a0b942e81674  34 minutes ago  59.3 MB
-localhost/quick-brown-fox                latest    a0b942e81674  34 minutes ago  59.3 MB
-docker.io/library/python                 3-alpine  1ae28589e5d4  11 days ago     47.6 MB
-docker.io/library/python                 3         49e3c70d884f  2 weeks ago     909 MB
+$ podman images  # notice the 'IMAGE ID' is the same 
+REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
+localhost/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  45 minutes ago  60.5 MB
+localhost/sjfke/ocp-sample-flask-docker  latest      67a7cd06b95d  45 minutes ago  60.5 MB
+localhost/quick-brown-fox                latest      67a7cd06b95d  45 minutes ago  60.5 MB
+docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
+docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
 
-$ podman push sjfke/ocp-sample-flask-docker # push to DockerHub
+$ podman push sjfke/ocp-sample-flask-docker:v0.1.0 # push v0.1.0 image to DockerHub
 
-$ podman pull docker.io/sjfke/ocp-sample-flask-docker:latest # test pull from DockerHub
+$ podman pull docker.io/sjfke/ocp-sample-flask-docker:v0.1.0 # Pull from DockerHub (docker.io - prefix)
 
-$ podman images
-REPOSITORY                               TAG       IMAGE ID      CREATED         SIZE
-docker.io/sjfke/ocp-sample-flask-docker  latest    a0b942e81674  38 minutes ago  59.3 MB
-localhost/sjfke/ocp-sample-flask-docker  latest    a0b942e81674  38 minutes ago  59.3 MB
-localhost/quick-brown-fox                latest    a0b942e81674  38 minutes ago  59.3 MB
-docker.io/library/python                 3-alpine  1ae28589e5d4  11 days ago     47.6 MB
-docker.io/library/python                 3         49e3c70d884f  2 weeks ago     909 MB
+$ podman images  # notice the 'IMAGE ID' is the same 
+REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
+docker.io/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  49 minutes ago  60.5 MB
+localhost/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  49 minutes ago  60.5 MB
+localhost/sjfke/ocp-sample-flask-docker  latest      67a7cd06b95d  49 minutes ago  60.5 MB
+localhost/quick-brown-fox                latest      67a7cd06b95d  49 minutes ago  60.5 MB
+docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
+docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
 
-$ podman run -dt -p 8080:8080 docker.io/sjfke/ocp-sample-flask-docker
+$ podman run -dt -p 8080:8080 --name 'cool_cat' docker.io/sjfke/ocp-sample-flask-docker:v0.1.0
 
 $ podman ps
-CONTAINER ID  IMAGE                                    COMMAND               CREATED        STATUS            PORTS                   NAMES
-9d947dc054e0  docker.io/sjfke/ocp-sample-flask-docker  /bin/sh -c gunico...  3 minutes ago  Up 3 minutes ago  0.0.0.0:8080->8080/tcp  hopeful_cray
+CONTAINER ID  IMAGE                                           COMMAND               CREATED         STATUS             PORTS                   NAMES
+06b1e7181459  docker.io/sjfke/ocp-sample-flask-docker:v0.1.0  /bin/sh -c gunico...  10 seconds ago  Up 10 seconds ago  0.0.0.0:8080->8080/tcp  cool_cat
 
 $ curl localhost:8080       # test it works
+$ firefox 127.0.0.1:8080    # test it works
 
-$ podman stop hopeful_cray  # hopeful_cray
-$ podman rm hopeful_cray    # 9d947dc054e0a7f12b24720abc83f4868bfc21bdd0e399af696b2bac023d5d07
-```
+$ podman stop cool_cat  
+$ podman rm cool_cat
+
+$ podman stop cool_cat
+$ podman rm cool_cat
+$ podman ps
+CONTAINER ID  IMAGE       COMMAND     CREATED     STATUS      PORTS       NAMES
+
+$ podman rmi docker.io/sjfke/ocp-sample-flask-docker:v0.1.0  # delete docker.io version
+$ podman images # now only 3 local images
+REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
+localhost/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  59 minutes ago  60.5 MB
+localhost/sjfke/ocp-sample-flask-docker  latest      67a7cd06b95d  59 minutes ago  60.5 MB
+localhost/quick-brown-fox                latest      67a7cd06b95d  59 minutes ago  60.5 MB
+docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
+docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
 
 ## Deployment Steps
 
@@ -456,17 +476,17 @@ $ rm mychart/templates/NOTES.txt.cln
 $ helm list
 NAME	NAMESPACE	REVISION	UPDATED	STATUS	CHART	APP VERSION
 
-$ helm install --dry-run --debug lazy-dog ./mychart # check
+$ helm install --dry-run --debug lazy_dog ./mychart # check
 
-$ helm install lazy-dog ./mychart
-NAME: lazy-dog
+$ helm install lazy_dog ./mychart
+NAME: lazy_dog
 LAST DEPLOYED: Wed May  5 15:06:10 2021
 NAMESPACE: sample-flask-docker
 STATUS: deployed
 REVISION: 1
 NOTES:
 1. Get the application URL by running these commands:
-  export POD_NAME=$(oc get pods --namespace sample-flask-docker -l "app.kubernetes.io/name=mychart,app.kubernetes.io/instance=lazy-dog" -o jsonpath="{.items[0].metadata.name}")
+  export POD_NAME=$(oc get pods --namespace sample-flask-docker -l "app.kubernetes.io/name=mychart,app.kubernetes.io/instance=lazy_dog" -o jsonpath="{.items[0].metadata.name}")
   export CONTAINER_PORT=$(oc get pod --namespace sample-flask-docker $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
   echo "Visit http://127.0.0.1:8080 to use your application"
   oc --namespace sample-flask-docker port-forward $POD_NAME 8080:$CONTAINER_PORT
@@ -474,17 +494,17 @@ NOTES:
 $ oc status
 In project sample-flask-docker on server https://api.crc.testing:6443
 
-svc/lazy-dog-mychart - 10.217.5.73:8080 -> http
-  deployment/lazy-dog-mychart deploys docker.io/sjfke/ocp-sample-flask-docker:latest
+svc/lazy_dog-mychart - 10.217.5.73:8080 -> http
+  deployment/lazy_dog-mychart deploys docker.io/sjfke/ocp-sample-flask-docker:latest
     deployment #1 running for 10 seconds - 0/1 pods
 
 View details with 'oc describe <resource>/<name>' or list resources with 'oc get all'.
 
 $ helm list
 NAME    	NAMESPACE          	REVISION	UPDATED                                 	STATUS  	CHART        	APP VERSION
-lazy-dog	sample-flask-docker	1       	2021-05-05 15:06:10.156623992 +0200 CEST	deployed	mychart-0.1.0	0.1.0      
+lazy_dog	sample-flask-docker	1       	2021-05-05 15:06:10.156623992 +0200 CEST	deployed	mychart-0.1.0	0.1.0      
 
-$ helm get manifest lazy-dog # check the manifest
+$ helm get manifest lazy_dog # check the manifest
 
 
 $ oc whoami   # kubeadmin
@@ -492,20 +512,20 @@ $ oc project  # Using project "sample-flask-docker" on server "https://api.crc.t
 
 $ oc get all
 NAME                                    READY   STATUS    RESTARTS   AGE
-pod/lazy-dog-mychart-5446c598d5-vd8xs   1/1     Running   0          55m
+pod/lazy_dog-mychart-5446c598d5-vd8xs   1/1     Running   0          55m
 
 NAME                       TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
-service/lazy-dog-mychart   ClusterIP   10.217.5.73   <none>        8080/TCP   55m
+service/lazy_dog-mychart   ClusterIP   10.217.5.73   <none>        8080/TCP   55m
 
 NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/lazy-dog-mychart   1/1     1            1           55m
+deployment.apps/lazy_dog-mychart   1/1     1            1           55m
 
 NAME                                          DESIRED   CURRENT   READY   AGE
-replicaset.apps/lazy-dog-mychart-5446c598d5   1         1         1       55m
+replicaset.apps/lazy_dog-mychart-5446c598d5   1         1         1       55m
 
-$ oc expose service/lazy-dog-mychart  # route.route.openshift.io/lazy-dog-mychart exposed
+$ oc expose service/lazy_dog-mychart  # route.route.openshift.io/lazy_dog-mychart exposed
 
-$ firefox http://lazy-dog-mychart-sample-flask-docker.apps-crc.testing/
+$ firefox http://lazy_dog-mychart-sample-flask-docker.apps-crc.testing/
 ```
 
 ## Uninstall Helm Chart
@@ -513,9 +533,9 @@ $ firefox http://lazy-dog-mychart-sample-flask-docker.apps-crc.testing/
 ```bash
 $ helm list
 NAME    	NAMESPACE          	REVISION	UPDATED                                 	STATUS  	CHART        	APP VERSION
-lazy-dog	sample-flask-docker	1       	2021-05-05 15:06:10.156623992 +0200 CEST	deployed	mychart-0.1.0	0.1.0      
+lazy_dog	sample-flask-docker	1       	2021-05-05 15:06:10.156623992 +0200 CEST	deployed	mychart-0.1.0	0.1.0      
 
-$ helm uninstall lazy-dog # release "lazy-dog" uninstalled
+$ helm uninstall lazy_dog # release "lazy_dog" uninstalled
 
 $ helm list -all
 NAME	NAMESPACE	REVISION	UPDATED	STATUS	CHART	APP VERSION
