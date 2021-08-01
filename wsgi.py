@@ -24,5 +24,15 @@ def legal():
     return render_template("legal.html")
 
 
+@application.route('/isready')
+def isready():
+    return 'isReady'
+
+
+@application.route('/isalive')
+def isalive():
+    return 'isAlive'
+
+
 if __name__ == "__main__":
     application.run()
