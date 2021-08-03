@@ -169,8 +169,10 @@ docker.io/library/python                 3-alpine    f773016f760e  5 days ago   
 docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
 
 $ podman push sjfke/ocp-sample-flask-docker:v0.1.0 # push v0.1.0 image to DockerHub
+$ podman push sjfke/ocp-sample-flask-docker:latest # push latest image to DockerHub (v0.1.0 with latest tag)
 
 $ podman pull docker.io/sjfke/ocp-sample-flask-docker:v0.1.0 # Pull from DockerHub (docker.io - prefix)
+$ podman pull docker.io/sjfke/ocp-sample-flask-docker:latest # Pull from DockerHub (docker.io - prefix)
 
 $ podman images  # notice the 'IMAGE ID' is the same 
 REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
@@ -206,6 +208,7 @@ localhost/sjfke/ocp-sample-flask-docker  latest      67a7cd06b95d  59 minutes ag
 localhost/quick-brown-fox                latest      67a7cd06b95d  59 minutes ago  60.5 MB
 docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
 docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
+```
 
 ## Deployment Steps
 
@@ -220,7 +223,8 @@ To obtain the default CRC ``kubeadmin`` password, run ``crc console --credential
 ```bash
 $ oc login -u kubeadmin -p <password> https://api.crc.testing:6443
 $ oc whoami                                                    # kubeadmin
-$ oc new-project sample-flask-docker
+$ oc new-project work911
+$ oc project              # check project is work911
 
 $ podman images
 REPOSITORY                               TAG       IMAGE ID      CREATED       SIZE
@@ -237,11 +241,30 @@ $ oc expose service/ocp-sample-flask-docker  # route.route.openshift.io/ocp-samp
 Once the application deployment is finished then it will be accessible as [ocp-sample-flask-docker](http://ocp-sample-flask-docker-sample-flask-docker.apps-crc.testing/).
 
 ```bash
-$ firefox http://ocp-sample-flask-docker-sample-flask-docker.apps-crc.testing/
+$ oc get all | egrep "HOST/PORT|route.route" # HOST/PORT column provides the URL
+$ firefox http://ocp-sample-flask-docker-work911.apps-crc.testing
 ```
 
+Checking the pod from OpenShift command-line:
 
-From the OpenShift Console WebUI:
+```bash
+$ oc get pods
+NAME                                       READY   STATUS    RESTARTS   AGE
+ocp-sample-flask-docker-7f54d777d8-lxlpj   1/1     Running   0          3m32s
+
+$ oc logs ocp-sample-flask-docker-7f54d777d8-lxlpj         # get pod log
+$ oc describe pod ocp-sample-flask-docker-7f54d777d8-lxlpj # get pod description
+$ oc rsh ocp-sample-flask-docker-7f54d777d8-lxlpj          # login to the pod, note 2x gunicorn/wsgi
+/usr/src/app $ ps -ef;exit
+PID   USER     TIME  COMMAND
+    1 10006500  0:00 {gunicorn} /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
+    9 10006500  0:00 {gunicorn} /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
+   18 10006500  0:00 /bin/sh
+   25 10006500  0:00 ps -ef
+$
+```
+
+Checking the pod from the OpenShift Console WebUI:
 
 * From *Builds* check the build log file, to see what is happening
 * From *Services* link, you can access the Pod, and even open a terminal on the Pod.
@@ -252,6 +275,7 @@ From the OpenShift Console WebUI:
 ```bash
 $ oc get all --selector app=ocp-sample-flask-docker     # list everything associated with the app
 $ oc delete all --selector app=ocp-sample-flask-docker  # delete everything associated with the app
+$ oc delete project work911                             # delete the work911 project
 ```
 
 ## Example output from various commands
@@ -300,18 +324,27 @@ svc/ocp-sample-flask-docker - 10.217.5.163:8080
 ### Output of `oc get all`
 
 ```bash
-gcollis@morpheus work07]$ oc get all --selector app=ocp-sample-flask-docker
+$ oc whoami   # kubeadmin
+$ oc project  # Using project "work911" on server "https://api.crc.testing:6443".
+$ oc get all  # work911 project details
+NAME                                           READY   STATUS    RESTARTS   AGE
+pod/ocp-sample-flask-docker-7f54d777d8-lxlpj   1/1     Running   0          14m
+
 NAME                              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
-service/ocp-sample-flask-docker   ClusterIP   10.217.5.163   <none>        8080/TCP   10m
+service/ocp-sample-flask-docker   ClusterIP   10.217.5.149   <none>        8080/TCP   14m
 
 NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/ocp-sample-flask-docker   1/1     1            1           10m
+deployment.apps/ocp-sample-flask-docker   1/1     1            1           14m
 
-NAME                                                     IMAGE REPOSITORY                                                                                      TAGS     UPDATED
-imagestream.image.openshift.io/ocp-sample-flask-docker   default-route-openshift-image-registry.apps-crc.testing/sample-flask-docker/ocp-sample-flask-docker   latest   10 minutes ago
+NAME                                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/ocp-sample-flask-docker-548cbcf4c7   0         0         0       14m
+replicaset.apps/ocp-sample-flask-docker-7f54d777d8   1         1         1       14m
 
-NAME                                               HOST/PORT                                                      PATH   SERVICES                  PORT       TERMINATION   WILDCARD
-route.route.openshift.io/ocp-sample-flask-docker   ocp-sample-flask-docker-sample-flask-docker.apps-crc.testing          ocp-sample-flask-docker   8080-tcp                 None
+NAME                                                     IMAGE REPOSITORY                                                                          TAGS     UPDATED
+imagestream.image.openshift.io/ocp-sample-flask-docker   default-route-openshift-image-registry.apps-crc.testing/work911/ocp-sample-flask-docker   latest   14 minutes ago
+
+NAME                                               HOST/PORT                                          PATH   SERVICES                  PORT       TERMINATION   WILDCARD
+route.route.openshift.io/ocp-sample-flask-docker   ocp-sample-flask-docker-work911.apps-crc.testing          ocp-sample-flask-docker   8080-tcp                 None
 ```
 
 ## Helm Chart Creation
