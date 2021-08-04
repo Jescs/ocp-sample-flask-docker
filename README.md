@@ -225,6 +225,7 @@ $ oc login -u kubeadmin -p <password> https://api.crc.testing:6443
 $ oc whoami                                                    # kubeadmin
 $ oc new-project work911
 $ oc project              # check project is work911
+Using project "work911" on server "https://api.crc.testing:6443".
 
 $ podman images
 REPOSITORY                               TAG       IMAGE ID      CREATED       SIZE
@@ -238,10 +239,11 @@ $ oc new-app docker.io/sjfke/ocp-sample-flask-docker
 $ oc status
 $ oc expose service/ocp-sample-flask-docker  # route.route.openshift.io/ocp-sample-flask-docker exposed
 ```
-Once the application deployment is finished then it will be accessible as [ocp-sample-flask-docker](http://ocp-sample-flask-docker-sample-flask-docker.apps-crc.testing/).
+Once the application deployment is finished then it will be accessible as [ocp-sample-flask-docker](http://ocp-sample-flask-docker-work911.apps-crc.testing).
 
 ```bash
 $ oc get all | egrep "HOST/PORT|route.route" # HOST/PORT column provides the URL
+$ curl http://ocp-sample-flask-docker-work911.apps-crc.testing
 $ firefox http://ocp-sample-flask-docker-work911.apps-crc.testing
 ```
 
@@ -254,8 +256,8 @@ ocp-sample-flask-docker-7f54d777d8-lxlpj   1/1     Running   0          3m32s
 
 $ oc logs ocp-sample-flask-docker-7f54d777d8-lxlpj         # get pod log
 $ oc describe pod ocp-sample-flask-docker-7f54d777d8-lxlpj # get pod description
-$ oc rsh ocp-sample-flask-docker-7f54d777d8-lxlpj          # login to the pod, note 2x gunicorn/wsgi
-/usr/src/app $ ps -ef;exit
+$ oc rsh ocp-sample-flask-docker-7f54d777d8-lxlpj          # login shell on pod
+$ oc rsh ocp-sample-flask-docker-7f54d777d8-lxlpj ps -ef   # run 'ps -ef' on pod, note 2x gunicorn/wsgi
 PID   USER     TIME  COMMAND
     1 10006500  0:00 {gunicorn} /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
     9 10006500  0:00 {gunicorn} /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
@@ -280,19 +282,17 @@ $ oc delete project work911                             # delete the work911 pro
 
 ## Example output from various commands
 
-### Output of `oc new-app`
-
-**Notice:** the labels from the Dockerfile, which were not set to anything sensible.
+### Output of `oc new-app docker.io/sjfke/ocp-sample-flask-docker`
 
 ```bash
 $ oc new-app docker.io/sjfke/ocp-sample-flask-docker
---> Found container image a0b942e (14 hours old) from docker.io for "docker.io/sjfke/ocp-sample-flask-docker"
+--> Found container image 330d76f (3 days old) from docker.io for "docker.io/sjfke/ocp-sample-flask-docker"
 
-    builder x.y.z 
-    ------------- 
-    Platform for building xyz
+    Lorem Ipsum 
+    ----------- 
+    Lorem Ipsum Flask Application for Docker
 
-    Tags: builder, x.y.z, etc.
+    Tags: Lorem Ipsum, 0.1.0, Flask
 
     * An image stream tag will be created as "ocp-sample-flask-docker:latest" that will track this image
 
@@ -306,16 +306,16 @@ $ oc new-app docker.io/sjfke/ocp-sample-flask-docker
     Run 'oc status' to view your app.
 ```
 
-### Output of `oc status`
+### Output of `oc status` after ``oc expose service/ocp-sample-flask-docker``
 
 ```bash
 $ oc status
-In project sample-flask-docker on server https://api.crc.testing:6443
+In project work911 on server https://api.crc.testing:6443
 
-svc/ocp-sample-flask-docker - 10.217.5.163:8080
+http://ocp-sample-flask-docker-work911.apps-crc.testing to pod port 8080-tcp (svc/ocp-sample-flask-docker)
   deployment/ocp-sample-flask-docker deploys istag/ocp-sample-flask-docker:latest 
-    deployment #2 running for 42 seconds - 1 pod
-    deployment #1 deployed 44 seconds ago
+    deployment #2 running for 3 minutes - 1 pod
+    deployment #1 deployed 3 minutes ago
 
 
 1 info identified, use 'oc status --suggest' to see details.
@@ -324,25 +324,22 @@ svc/ocp-sample-flask-docker - 10.217.5.163:8080
 ### Output of `oc get all`
 
 ```bash
-$ oc whoami   # kubeadmin
-$ oc project  # Using project "work911" on server "https://api.crc.testing:6443".
-$ oc get all  # work911 project details
+$ oc get all
 NAME                                           READY   STATUS    RESTARTS   AGE
-pod/ocp-sample-flask-docker-7f54d777d8-lxlpj   1/1     Running   0          14m
+pod/ocp-sample-flask-docker-7f54d777d8-5q6ds   1/1     Running   0          5m8s
 
-NAME                              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
-service/ocp-sample-flask-docker   ClusterIP   10.217.5.149   <none>        8080/TCP   14m
+NAME                              TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
+service/ocp-sample-flask-docker   ClusterIP   10.217.4.13   <none>        8080/TCP   5m10s
 
 NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/ocp-sample-flask-docker   1/1     1            1           14m
+deployment.apps/ocp-sample-flask-docker   1/1     1            1           5m10s
 
 NAME                                                 DESIRED   CURRENT   READY   AGE
-replicaset.apps/ocp-sample-flask-docker-548cbcf4c7   0         0         0       14m
-replicaset.apps/ocp-sample-flask-docker-7f54d777d8   1         1         1       14m
+replicaset.apps/ocp-sample-flask-docker-548cbcf4c7   0         0         0       5m10s
+replicaset.apps/ocp-sample-flask-docker-7f54d777d8   1         1         1       5m8s
 
 NAME                                                     IMAGE REPOSITORY                                                                          TAGS     UPDATED
-imagestream.image.openshift.io/ocp-sample-flask-docker   default-route-openshift-image-registry.apps-crc.testing/work911/ocp-sample-flask-docker   latest   14 minutes ago
+imagestream.image.openshift.io/ocp-sample-flask-docker   default-route-openshift-image-registry.apps-crc.testing/work911/ocp-sample-flask-docker   latest   5 minutes ago
 
 NAME                                               HOST/PORT                                          PATH   SERVICES                  PORT       TERMINATION   WILDCARD
-route.route.openshift.io/ocp-sample-flask-docker   ocp-sample-flask-docker-work911.apps-crc.testing          ocp-sample-flask-docker   8080-tcp                 None
-```
+route.route.openshift.io/ocp-sample-flask-docker   ocp-sample-flask-docker-work911.apps-crc.testing          ocp-sample-flask-docker   8080-tcp                 None```
