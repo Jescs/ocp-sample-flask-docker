@@ -1,4 +1,4 @@
-# Simple Flask Example
+# Podman built Flask Docker container, deployed to OpenShift
 
 This repository provides a simple Python web application implemented using the Flask web framework and executed using 
 ``gunicorn``. It is intended to be used to demonstrate deployment of Python web applications to OpenShift 4 using 
