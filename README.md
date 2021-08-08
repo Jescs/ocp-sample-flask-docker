@@ -5,6 +5,15 @@ This repository provides a simple Python web application implemented using the F
 [Podman](https://podman.io/) whose command-line is 100% compatible with [Docker](https://docs.docker.com/get-started/overview/) 
 in fact the suggestion in the documentation is to ``$ alias docker=podman #`` for compatibility with Docker scripts.
 
+Key files:
+
+* config.py: GUNICORN settings;
+* wsgi.py: define the pages (routes) that are visible;
+* templates/base.html: boiler-plate for html pages;
+* templates/index.html: Standard Lorem Ipsum;
+* templates/legal.html: Legal-style Lorem Ipsum;
+* templates/pirate.html: Pirate-style Lorem Ipsum;
+* templates/zombie.html: Zombie-style Lorem Ipsum
 
 ## Implementation Notes
 
