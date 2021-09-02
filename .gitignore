@@ -93,6 +93,7 @@ venv.bak/
 # Eclipse setting and PTP sync directory
 .settings/
 .ptp-sync/
+.project/
 app/.ptp-sync-folder
 app/templates/.ptp-sync-folder
 
