@@ -5,6 +5,10 @@ This repository provides a simple Python web application implemented using the F
 [Podman](https://podman.io/) whose command-line is 100% compatible with [Docker](https://docs.docker.com/get-started/overview/) 
 in fact the suggestion in the documentation is to ``$ alias docker=podman #`` for compatibility with Docker scripts.
 
+However there are some differences, so building the docker image is also demonstrated with [Docker for Windows](https://docs.docker.com/desktop/windows/install/) on
+ *Windows 10 Home edition* where only ```WSL 2``` is available. With *Windows 10 Pro* you can choose to use a 
+ [Hyper-V backend](https://allthings.how/how-to-install-docker-on-windows-10/) or ```WSL 2```.
+
 Key files:
 
 * config.py: GUNICORN settings;
@@ -37,9 +41,10 @@ Other useful references:
 * [OpenShiftDemos: os-sample-python](https://github.com/OpenShiftDemos/os-sample-python)
 * [Publish Container Images to Docker Hub / Image registry with Podman](https://computingforgeeks.com/how-to-publish-docker-image-to-docker-hub-with-podman/)
 
-Fedora 33 was the platform used for this project, which has deprecated `docker` by `podman`, which is command-line compatible.
+Fedora 33 was the platform used for this project, which deprecated `docker` by `podman`, which is command-line compatible.
 
-For other platforms, either `alias podman=docker` or replace `podman` with `docker` in the examples.
+For other platforms, follow the `docker` examples.
+
 
 * [Transitioning from Docker to Podman](https://developers.redhat.com/blog/2020/11/19/transitioning-from-docker-to-podman/)
  
@@ -108,6 +113,20 @@ REPOSITORY                TAG       IMAGE ID      CREATED      SIZE
 docker.io/library/python  3-alpine  1ae28589e5d4  11 days ago  47.6 MB
 docker.io/library/python  3         49e3c70d884f  2 weeks ago  909 MB
 ```
+
+```powershell
+PS1> docker images
+REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+
+PS1> docker pull docker.io/library/python:3-alpine
+PS1> docker pull docker.io/library/python:3
+
+PS1> docker images
+REPOSITORY   TAG        IMAGE ID       CREATED      SIZE
+python       3-alpine   1e76e5659bd2   2 days ago   45.1MB
+python       3          6f1289b1e6a1   2 days ago   911MB
+```
+
 Notice how much bigger the `python:3` image is. Unless you require a full python environment, use the `python:3-alpine`.
 
 Build and test the local docker image, notice the image is tagged `quick-brown-fox`, and the container `lazy_dog`.
@@ -115,16 +134,38 @@ Build and test the local docker image, notice the image is tagged `quick-brown-f
 Omitting the `--name` in the `podman run` command, and `--name` will be [auto-generated](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go).
 
 ```bash
-$ podman build --tag quick-brown-fox -f ./Dockerfile
-
+$ podman build --tag quick-brown-fox -f ./Dockerfile # TODO check on F33
 $ podman images
 REPOSITORY                 TAG       IMAGE ID      CREATED         SIZE
 localhost/quick-brown-fox  latest    a0b942e81674  15 seconds ago  59.3 MB
 docker.io/library/python   3-alpine  1ae28589e5d4  11 days ago     47.6 MB
 docker.io/library/python   3         49e3c70d884f  2 weeks ago     909 MB
+```
 
+```powershell
+PS1> docker build --tag localhost/flask-lorem-ipsum:latest -f .\Dockerfile .
+
+PS1> docker images
+REPOSITORY                    TAG        IMAGE ID       CREATED        SIZE
+localhost/flask-lorem-ipsum   latest     8440e2c980ad   16 hours ago   56.7MB
+python                        3-alpine   1e76e5659bd2   2 days ago     45.1MB
+python                        3          6f1289b1e6a1   2 days ago     911MB
+```
+
+Now lets run the container in daemon mode.
+
+```bash
 $ podman run -dt -p 8080:8080/tcp --name 'lazy_dog' localhost/quick-brown-fox
 eae5c4d5e893376c6d6921f627b45720c09b7da98e8d672d80aac3a0cb95eae3
+```
+
+```powershell
+PS1> docker run -dt -p 8080:8080 --name "lazy-dog" localhost/flask-lorem-ipsum
+```
+
+
+
+```
 
 # Check the Docker container is up and running.
 $ podman ps -a
@@ -150,6 +191,33 @@ f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  11 minutes
 
 $ podman rm lazy_dog
 f3792a298b807a86a76932061175519537e9f311fdb8c1ad50cb3cd5fac41125
+```
+
+```powershell
+PS1> docker ps
+CONTAINER ID   IMAGE                         COMMAND                  CREATED          STATUS         PORTS                                       NAMES
+8a288adadcde   localhost/flask-lorem-ipsum   "/bin/sh -c 'gunicor…"   12 minutes ago   Up 4 minutes   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp   lazy-dog
+
+PS1> docker top lazy-dog
+UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
+1001                2413                2392                0                   10:48               ?                   00:00:00            /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
+1001                2447                2413                0                   10:48               ?                   00:00:00            /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
+
+# Test fetching the application home page.
+PS1> Invoke-WebRequest "http://localhost:8080"
+PS1> start msedge "http://localhost:8080" # or PS1> start "http://localhost:8080"
+
+# Stop and Delete the Docker container
+PS1> docker stop lazy-dog
+
+PS1> docker ps -a
+CONTAINER ID   IMAGE                         COMMAND                  CREATED          STATUS                     PORTS     NAMES
+8a288adadcde   localhost/flask-lorem-ipsum   "/bin/sh -c 'gunicor…"   13 minutes ago   Exited (0) 6 seconds ago             lazy-dog
+
+PS1> docker rm lazy-dog
+
+PS1> docker ps -a
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 ```
 
 ## DockerHub Build and Test
