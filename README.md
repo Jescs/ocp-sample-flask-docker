@@ -134,16 +134,16 @@ Build and test the local docker image, notice the image is tagged `quick-brown-f
 Omitting the `--name` in the `podman run` command, and `--name` will be [auto-generated](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go).
 
 ```bash
-$ podman build --tag quick-brown-fox -f ./Dockerfile # TODO check on F33
+$ podman build --tag localhost/flask-lorem-ipsum:latest -f ./Dockerfile $PWD
 $ podman images
-REPOSITORY                 TAG       IMAGE ID      CREATED         SIZE
-localhost/quick-brown-fox  latest    a0b942e81674  15 seconds ago  59.3 MB
-docker.io/library/python   3-alpine  1ae28589e5d4  11 days ago     47.6 MB
-docker.io/library/python   3         49e3c70d884f  2 weeks ago     909 MB
+REPOSITORY                    TAG       IMAGE ID      CREATED         SIZE
+localhost/flask-lorem-ipsum   latest    a0b942e81674  15 seconds ago  60.5 MB
+docker.io/library/python      3-alpine  1ae28589e5d4  11 days ago     47.6 MB
+docker.io/library/python      3         49e3c70d884f  2 weeks ago     909 MB
 ```
 
 ```powershell
-PS1> docker build --tag localhost/flask-lorem-ipsum:latest -f .\Dockerfile .
+PS1> docker build --tag localhost/flask-lorem-ipsum:latest -f .\Dockerfile $pwd
 
 PS1> docker images
 REPOSITORY                    TAG        IMAGE ID       CREATED        SIZE
@@ -155,12 +155,12 @@ python                        3          6f1289b1e6a1   2 days ago     911MB
 Now lets run the container in daemon mode.
 
 ```bash
-$ podman run -dt -p 8080:8080/tcp --name 'lazy_dog' localhost/quick-brown-fox
+$ podman run -dt -p 8081:8080/tcp --name 'lazy_dog' localhost/quick-brown-fox
 eae5c4d5e893376c6d6921f627b45720c09b7da98e8d672d80aac3a0cb95eae3
 ```
 
 ```powershell
-PS1> docker run -dt -p 8080:8080 --name "lazy-dog" localhost/flask-lorem-ipsum
+PS1> docker run -dt -p 8081:8080 --name "lazy-dog" localhost/flask-lorem-ipsum
 ```
 
 
@@ -178,8 +178,8 @@ USER        PID         PPID        %CPU        ELAPSED          TTY         TIM
 1001        2           1           0.000       10m5.764988831s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
 
 # Test fetching the application home page.
-$ curl localhost:8080
-$ firefox localhost:8080
+$ curl localhost:8081
+$ firefox localhost:8081
 
 # Stop and Delete the Docker container
 $ podman stop lazy_dog
@@ -205,7 +205,7 @@ UID                 PID                 PPID                C                   
 
 # Test fetching the application home page.
 PS1> Invoke-WebRequest "http://localhost:8080"
-PS1> start msedge "http://localhost:8080" # or PS1> start "http://localhost:8080"
+PS1> start msedge "http://localhost:8081" # or PS1> start "http://localhost:8081"
 
 # Stop and Delete the Docker container
 PS1> docker stop lazy-dog
@@ -222,13 +222,15 @@ CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 
 ## DockerHub Build and Test
 
-Process is based on [Publish Container Images to Docker Hub / Image registry with Podman](https://computingforgeeks.com/how-to-publish-docker-image-to-docker-hub-with-podman/)
+This is based on [Publish Container Images to Docker Hub / Image registry with Podman](https://computingforgeeks.com/how-to-publish-docker-image-to-docker-hub-with-podman/)
+You need an account on a public docker repository, such as:
 
 * [Register for a Docker ID](https://docs.docker.com/docker-id/)
 * [Register for RedHat Quay.IO](https://access.redhat.com/articles/quayio-help)
 * [StackShare.IO: Alternatives to Docker Hub](https://stackshare.io/docker-hub/alternatives)
 
-Login into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `ocp-sample-flask-docker`.
+In this example [DockerHub](https://hub.docker.com/) is being used, so first login 
+into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `ocp-sample-flask-docker`.
 
 ```bash
 $ podman login docker.io  # sjfke/password; use your own login and password :-)
