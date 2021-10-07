@@ -41,12 +41,14 @@ Other useful references:
 * [OpenShiftDemos: os-sample-python](https://github.com/OpenShiftDemos/os-sample-python)
 * [Publish Container Images to Docker Hub / Image registry with Podman](https://computingforgeeks.com/how-to-publish-docker-image-to-docker-hub-with-podman/)
 
-Fedora 33 was the platform used for this project, which deprecated `docker` by `podman`, which is command-line compatible.
-
-For other platforms, follow the `docker` examples.
+``Fedora 33`` and ``Windows 10 Home Edition`` were used for this project. Fedora deprecated `docker` in favour of `podman`, while these are command-line compatible 
+there are some minor differences, so both are illustarted.
 
 
 * [Transitioning from Docker to Podman](https://developers.redhat.com/blog/2020/11/19/transitioning-from-docker-to-podman/)
+* [Windows Subsystem for Linux Documentation](https://docs.microsoft.com/en-us/windows/wsl/)
+* [Docker on Hyper-V vs WSL 2](https://superuser.com/questions/1561465/docker-on-hyper-v-vs-wsl-2)
+* [Install Docker Desktop on Windows](https://docs.docker.com/desktop/windows/install/)
  
 
 ## Docker File
@@ -97,9 +99,9 @@ EXPOSE ${PORT}
 CMD gunicorn -b 0.0.0.0:${PORT} wsgi
 ```
 
-## Local Build and Test
+## Prerequisites
 
-Download, `podman pull`, the python docker images, `python3` and `python3-alpine`.
+Download (`podman pull`), the python docker images, `python3` and `python3-alpine`.
 
 ```bash
 $ podman images  # repo is empty
@@ -127,11 +129,13 @@ python       3-alpine   1e76e5659bd2   2 days ago   45.1MB
 python       3          6f1289b1e6a1   2 days ago   911MB
 ```
 
-Notice how much bigger the `python:3` image is. Unless you require a full python environment, use the `python:3-alpine`.
+Notice how much bigger the `python:3` image is.
 
-Build and test the local docker image, notice the image is tagged `quick-brown-fox`, and the container `lazy_dog`.
+Unless you require a full python environment, use the `python:3-alpine`.
 
-Omitting the `--name` in the `podman run` command, and `--name` will be [auto-generated](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go).
+## Local Build and Test
+
+Notice the image is tagged `localhost/flask-lorem-ipsum:latest`. 
 
 ```bash
 $ podman build --tag localhost/flask-lorem-ipsum:latest -f ./Dockerfile $PWD
@@ -144,30 +148,28 @@ docker.io/library/python      3         49e3c70d884f  2 weeks ago     909 MB
 
 ```powershell
 PS1> docker build --tag localhost/flask-lorem-ipsum:latest -f .\Dockerfile $pwd
-
 PS1> docker images
-REPOSITORY                    TAG        IMAGE ID       CREATED        SIZE
-localhost/flask-lorem-ipsum   latest     8440e2c980ad   16 hours ago   56.7MB
-python                        3-alpine   1e76e5659bd2   2 days ago     45.1MB
-python                        3          6f1289b1e6a1   2 days ago     911MB
+REPOSITORY                    TAG        IMAGE ID       CREATED          SIZE
+localhost/flask-lorem-ipsum   latest     c24712ca1e9f   10 minutes ago   56.7MB
+python                        3-alpine   1e76e5659bd2   3 weeks ago      45.1MB
+python                        3          6f1289b1e6a1   3 weeks ago      911MB
 ```
 
-Now lets run the container in daemon mode.
+### Run the container (lazy-dog) in daemon mode.
 
 ```bash
-$ podman run -dt -p 8081:8080/tcp --name 'lazy_dog' localhost/quick-brown-fox
-eae5c4d5e893376c6d6921f627b45720c09b7da98e8d672d80aac3a0cb95eae3
+$ podman run -dt -p 8081:8080/tcp --name 'lazy_dog' localhost/flask-lorem-ipsum
 ```
 
 ```powershell
 PS1> docker run -dt -p 8081:8080 --name "lazy-dog" localhost/flask-lorem-ipsum
 ```
 
+Note omitting the `--name` in the `podman run` command, and it will be created using [Names Auto Generator](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go).
 
+### Check the Docker container is up and running.
 
-```
-
-# Check the Docker container is up and running.
+```bash
 $ podman ps -a
 CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS             PORTS                   NAMES
 f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  10 seconds ago  Up 11 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
@@ -195,24 +197,24 @@ f3792a298b807a86a76932061175519537e9f311fdb8c1ad50cb3cd5fac41125
 
 ```powershell
 PS1> docker ps
-CONTAINER ID   IMAGE                         COMMAND                  CREATED          STATUS         PORTS                                       NAMES
-8a288adadcde   localhost/flask-lorem-ipsum   "/bin/sh -c 'gunicor…"   12 minutes ago   Up 4 minutes   0.0.0.0:8080->8080/tcp, :::8080->8080/tcp   lazy-dog
+CONTAINER ID   IMAGE                         COMMAND                  CREATED          STATUS          PORTS                                       NAMES
+52fb677c3433   localhost/flask-lorem-ipsum   "/bin/sh -c 'gunicor…"   20 seconds ago   Up 18 seconds   0.0.0.0:8081->8080/tcp, :::8081->8080/tcp   lazy-dog
 
 PS1> docker top lazy-dog
 UID                 PID                 PPID                C                   STIME               TTY                 TIME                CMD
-1001                2413                2392                0                   10:48               ?                   00:00:00            /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
-1001                2447                2413                0                   10:48               ?                   00:00:00            /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
+1001                1782                1763                0                   13:20               ?                   00:00:00            /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
+1001                1815                1782                0                   13:20               ?                   00:00:00            /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
 
 # Test fetching the application home page.
-PS1> Invoke-WebRequest "http://localhost:8080"
+PS1> Invoke-WebRequest "http://localhost:8081"
 PS1> start msedge "http://localhost:8081" # or PS1> start "http://localhost:8081"
 
 # Stop and Delete the Docker container
 PS1> docker stop lazy-dog
 
 PS1> docker ps -a
-CONTAINER ID   IMAGE                         COMMAND                  CREATED          STATUS                     PORTS     NAMES
-8a288adadcde   localhost/flask-lorem-ipsum   "/bin/sh -c 'gunicor…"   13 minutes ago   Exited (0) 6 seconds ago             lazy-dog
+CONTAINER ID   IMAGE                         COMMAND                  CREATED         STATUS                      PORTS     NAMES
+52fb677c3433   localhost/flask-lorem-ipsum   "/bin/sh -c 'gunicor…"   8 minutes ago   Exited (0) 11 seconds ago             lazy-dog
 
 PS1> docker rm lazy-dog
 
@@ -230,7 +232,41 @@ You need an account on a public docker repository, such as:
 * [StackShare.IO: Alternatives to Docker Hub](https://stackshare.io/docker-hub/alternatives)
 
 In this example [DockerHub](https://hub.docker.com/) is being used, so first login 
-into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `ocp-sample-flask-docker`.
+into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `flask-lorem-ipsum`.
+
+```powershell
+PS1> docker login docker.io  # sjfke/password; use your own login and password :-)
+
+PS1> docker build --tag sjfke/flask-lorem-ipsum:v0.1.0 -f ./Dockerfile $pwd
+
+PS1> docker images
+REPOSITORY                    TAG        IMAGE ID       CREATED          SIZE
+sjfke/flask-lorem-ipsum       v0.1.0     c24712ca1e9f   22 minutes ago   56.7MB
+localhost/flask-lorem-ipsum   latest     c24712ca1e9f   22 minutes ago   56.7MB
+python                        3-alpine   1e76e5659bd2   3 weeks ago      45.1MB
+python                        3          6f1289b1e6a1   3 weeks ago      911MB
+
+PS1> docker push sjfke/flask-lorem-ipsum:v0.1.0 # push v0.1.0 image to DockerHub
+The push refers to repository [docker.io/sjfke/flask-lorem-ipsum]
+311d832ebed4: Pushed
+<-- SNIP -->
+v0.1.0: digest: sha256:80af45362368af89df6f63008fbb5c8358a875e6d7ebd3af5619ce48527b18b3 size: 2615
+
+PS1> docker pull docker.io/sjfke/flask-lorem-ipsum:v0.1.0 # Pull from DockerHub (docker.io - prefix)
+v0.1.0: Pulling from sjfke/flask-lorem-ipsum
+Digest: sha256:80af45362368af89df6f63008fbb5c8358a875e6d7ebd3af5619ce48527b18b3
+Status: Image is up to date for sjfke/flask-lorem-ipsum:v0.1.0
+docker.io/sjfke/flask-lorem-ipsum:v0.1.0
+
+## TODO check why pull failed... suspect need to remove local build.
+
+PS1> docker images
+REPOSITORY                    TAG        IMAGE ID       CREATED          SIZE
+localhost/flask-lorem-ipsum   latest     c24712ca1e9f   29 minutes ago   56.7MB
+sjfke/flask-lorem-ipsum       v0.1.0     c24712ca1e9f   29 minutes ago   56.7MB
+python                        3-alpine   1e76e5659bd2   3 weeks ago      45.1MB
+python                        3          6f1289b1e6a1   3 weeks ago      911MB
+```
 
 ```bash
 $ podman login docker.io  # sjfke/password; use your own login and password :-)
