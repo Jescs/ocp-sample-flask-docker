@@ -101,7 +101,7 @@ CMD gunicorn -b 0.0.0.0:${PORT} wsgi
 
 ## Prerequisites
 
-Download (`podman pull`), the python docker images, `python3` and `python3-alpine`.
+Download (`podman pull`, `docker pull`), the python docker images, `python3` and `python3-alpine`.
 
 ```bash
 $ podman images  # repo is empty
