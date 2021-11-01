@@ -2,14 +2,14 @@
 
 This repository provides a simple Python web application implemented using the Flask web framework and executed using 
 ``gunicorn``. It is intended to be used to demonstrate deployment of Python web applications to OpenShift 4 using 
-[Podman](https://podman.io/) whose command-line is 100% compatible with [Docker](https://docs.docker.com/get-started/overview/) 
+[Podman](https://podman.io/) whose command-line very similar to [Docker](https://docs.docker.com/get-started/overview/) 
 in fact the suggestion in the documentation is to ``$ alias docker=podman #`` for compatibility with Docker scripts.
 
 However there are some differences, so building the docker image is also demonstrated with [Docker for Windows](https://docs.docker.com/desktop/windows/install/) on
  *Windows 10 Home edition* where only ```WSL 2``` is available. With *Windows 10 Pro* you can choose to use a 
  [Hyper-V backend](https://allthings.how/how-to-install-docker-on-windows-10/) or ```WSL 2```.
 
-Key files:
+Application's Key files:
 
 * config.py: GUNICORN settings;
 * wsgi.py: define the pages (routes) that are visible;
@@ -31,7 +31,7 @@ need to be satisfied for this to work are:
 The example is based on [Getting Started with Flask](https://scotch.io/tutorials/getting-started-with-flask-a-python-microframework) but has 
 been modified to work [Green Unicorn - WSGI sever](https://docs.gunicorn.org/en/stable/) and the content of the web-site 
 changed to provide some [Lorem Ipsum](https://en.wikipedia.org/wiki/Lorem_ipsum) pages from [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/), 
-and `isalive` and `isready` probe pages have been added for Kubernetes.
+and `isalive` and `isready` probe pages have been added for OpenShift (Kubernetes).
 
 Other useful references:
 
@@ -41,8 +41,8 @@ Other useful references:
 * [OpenShiftDemos: os-sample-python](https://github.com/OpenShiftDemos/os-sample-python)
 * [Publish Container Images to Docker Hub / Image registry with Podman](https://computingforgeeks.com/how-to-publish-docker-image-to-docker-hub-with-podman/)
 
-``Fedora 33`` and ``Windows 10 Home Edition`` were used for this project. Fedora deprecated `docker` in favour of `podman`, while these are command-line compatible 
-there are some minor differences, so both are illustarted.
+``Fedora 33`` and ``Windows 10 Home Edition`` were used for this project. Fedora 32 deprecated `docker` in favour of `podman`, while these are command-line compatible 
+there are some minor differences, so both are illustrated. In [Fedora 35 docker](https://fedoramagazine.org/docker-and-fedora-35/) has been reintroduced.
 
 
 * [Transitioning from Docker to Podman](https://developers.redhat.com/blog/2020/11/19/transitioning-from-docker-to-podman/)
@@ -78,13 +78,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # TODO (optional): Copy the builder files into /opt/app-root
 # COPY ./<builder_folder>/ /opt/app-root/
+COPY config.py ./
+COPY templates/* ./templates/
+COPY wsgi.py ./
 
 # TODO: Copy the S2I scripts to /usr/libexec/s2i, since openshift/base-centos7 image
 # sets io.openshift.s2i.scripts-url label that way, or update that label
 # COPY ./s2i/bin/ /usr/libexec/s2i
-COPY config.py ./
-COPY templates/* ./templates/
-COPY wsgi.py ./
 
 # TODO: Drop the root user and make the content of /opt/app-root owned by user 1001
 # RUN chown -R 1001:1001 /opt/app-root
@@ -117,7 +117,7 @@ docker.io/library/python  3         49e3c70d884f  2 weeks ago  909 MB
 ```
 
 ```powershell
-PS1> docker images
+PS1> docker images # repo is empty
 REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
 
 PS1> docker pull docker.io/library/python:3-alpine
@@ -129,9 +129,9 @@ python       3-alpine   1e76e5659bd2   2 days ago   45.1MB
 python       3          6f1289b1e6a1   2 days ago   911MB
 ```
 
-Notice how much bigger the `python:3` image is.
+Notice how much bigger the `python:3` image is, so unless you require a full python environment, use the `python:3-alpine`.
 
-Unless you require a full python environment, use the `python:3-alpine`.
+This project has been several iterations, so while the Docker image ID ought to be consistent in all the examples, please report any discrepancies. 
 
 ## Local Build and Test
 
@@ -155,26 +155,27 @@ python                        3-alpine   1e76e5659bd2   3 weeks ago      45.1MB
 python                        3          6f1289b1e6a1   3 weeks ago      911MB
 ```
 
-### Run the container (lazy-dog) in daemon mode.
+### Run the container ``lazy-dog`` in daemon mode.
 
 ```bash
-$ podman run -dt -p 8081:8080/tcp --name 'lazy_dog' localhost/flask-lorem-ipsum
+$ podman run -dt -p 8081:8080/tcp --name 'lazy-dog' localhost/flask-lorem-ipsum
 ```
 
 ```powershell
 PS1> docker run -dt -p 8081:8080 --name "lazy-dog" localhost/flask-lorem-ipsum
 ```
 
-Note omitting the `--name` in the `podman run` command, and it will be created using [Names Auto Generator](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go).
+Note omitting the `--name` in the `podman run` command, and it will be created using [Names Auto Generator](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go) 
+and also that different port numbers are used to emphasize which is the container port.
 
 ### Check the Docker container is up and running.
 
 ```bash
 $ podman ps -a
 CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS             PORTS                   NAMES
-f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  10 seconds ago  Up 11 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
+f3792a298b80  localhost/flask-lorem-ipsum:latest  /bin/sh -c gunico...  10 seconds ago  Up 11 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
 
-$ podman top lazy_dog
+$ podman top lazy-dog
 USER        PID         PPID        %CPU        ELAPSED          TTY         TIME        COMMAND
 1001        1           0           0.000       10m6.764894348s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
 1001        2           1           0.000       10m5.764988831s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
@@ -184,15 +185,18 @@ $ curl localhost:8081
 $ firefox localhost:8081
 
 # Stop and Delete the Docker container
-$ podman stop lazy_dog
+$ podman stop lazy-dog
 lazy_dog
 
 $ podman ps -a
 CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS                     PORTS                   NAMES
-f3792a298b80  localhost/quick-brown-fox:latest  /bin/sh -c gunico...  11 minutes ago  Exited (0) 14 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
+f3792a298b80  localhost/flask-lorem-ipsum:latest  /bin/sh -c gunico...  11 minutes ago  Exited (0) 14 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
 
-$ podman rm lazy_dog
+$ podman rm lazy-dog
 f3792a298b807a86a76932061175519537e9f311fdb8c1ad50cb3cd5fac41125
+
+$ podman ps -a
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 ```
 
 ```powershell
@@ -222,83 +226,92 @@ PS1> docker ps -a
 CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 ```
 
-## DockerHub Build and Test
+## Docker Build and Test
 
 This is based on [Publish Container Images to Docker Hub / Image registry with Podman](https://computingforgeeks.com/how-to-publish-docker-image-to-docker-hub-with-podman/)
 You need an account on a public docker repository, such as:
 
 * [Register for a Docker ID](https://docs.docker.com/docker-id/)
 * [Register for RedHat Quay.IO](https://access.redhat.com/articles/quayio-help)
+* [Quay.io User Guides](https://docs.quay.io/guides/)
 * [StackShare.IO: Alternatives to Docker Hub](https://stackshare.io/docker-hub/alternatives)
 
-In this example [DockerHub](https://hub.docker.com/) is being used, so first login 
-into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `flask-lorem-ipsum`.
+In this example [Quay.io](https://quay.io/) is being used.
+
+First login into [Quay.io](https://quay.io/signin/), using your credentials, and create repository `flask-lorem-ipsum`.
 
 ```powershell
-PS1> docker login docker.io  # sjfke/password; use your own login and password :-)
+PS1> docker login quay.io  # sjfke/password; use your own login and password :-)
 
-PS1> docker build --tag sjfke/flask-lorem-ipsum:v0.1.0 -f ./Dockerfile $pwd
+PS1> docker build --tag quay.io/sjfke/flask-lorem-ipsum:v0.1.0 -f ./Dockerfile $pwd
 
 PS1> docker images
-REPOSITORY                    TAG        IMAGE ID       CREATED          SIZE
-sjfke/flask-lorem-ipsum       v0.1.0     c24712ca1e9f   22 minutes ago   56.7MB
-localhost/flask-lorem-ipsum   latest     c24712ca1e9f   22 minutes ago   56.7MB
-python                        3-alpine   1e76e5659bd2   3 weeks ago      45.1MB
-python                        3          6f1289b1e6a1   3 weeks ago      911MB
+REPOSITORY                        TAG        IMAGE ID       CREATED       SIZE
+localhost/flask-lorem-ipsum       latest     c24712ca1e9f   5 weeks ago   56.7MB
+quay.io/sjfke/flask-lorem-ipsum   v0.1.0     8440e2c980ad   8 weeks ago   56.7MB
+python                            3-alpine   1e76e5659bd2   8 weeks ago   45.1MB
+python                            3          6f1289b1e6a1   8 weeks ago   911MB
 
-PS1> docker push sjfke/flask-lorem-ipsum:v0.1.0 # push v0.1.0 image to DockerHub
-The push refers to repository [docker.io/sjfke/flask-lorem-ipsum]
-311d832ebed4: Pushed
+PS1> docker push quay.io/sjfke/flask-lorem-ipsum:v0.1.0 # push v0.1.0 image to Quay.io
+The push refers to repository [quay.io/sjfke/flask-lorem-ipsum]
+70a07b349c51: Pushed
 <-- SNIP -->
-v0.1.0: digest: sha256:80af45362368af89df6f63008fbb5c8358a875e6d7ebd3af5619ce48527b18b3 size: 2615
+e2eb06d8af82: Pushed
+v0.1.0: digest: sha256:5829217be851c3607037f384fcc3f84a85b6942387c700511fe3061c00b490a4 size: 2615
 
-PS1> docker pull docker.io/sjfke/flask-lorem-ipsum:v0.1.0 # Pull from DockerHub (docker.io - prefix)
+PS1> docker pull quay.io/sjfke/flask-lorem-ipsum:v0.1.0
 v0.1.0: Pulling from sjfke/flask-lorem-ipsum
-Digest: sha256:80af45362368af89df6f63008fbb5c8358a875e6d7ebd3af5619ce48527b18b3
-Status: Image is up to date for sjfke/flask-lorem-ipsum:v0.1.0
-docker.io/sjfke/flask-lorem-ipsum:v0.1.0
-
-## TODO check why pull failed... suspect need to remove local build.
+Digest: sha256:5829217be851c3607037f384fcc3f84a85b6942387c700511fe3061c00b490a4
+Status: Image is up to date for quay.io/sjfke/flask-lorem-ipsum:v0.1.0
+quay.io/sjfke/flask-lorem-ipsum:v0.1.0
 
 PS1> docker images
-REPOSITORY                    TAG        IMAGE ID       CREATED          SIZE
-localhost/flask-lorem-ipsum   latest     c24712ca1e9f   29 minutes ago   56.7MB
-sjfke/flask-lorem-ipsum       v0.1.0     c24712ca1e9f   29 minutes ago   56.7MB
-python                        3-alpine   1e76e5659bd2   3 weeks ago      45.1MB
-python                        3          6f1289b1e6a1   3 weeks ago      911MB
+REPOSITORY                        TAG        IMAGE ID       CREATED       SIZE
+localhost/flask-lorem-ipsum       latest     c24712ca1e9f   5 weeks ago   56.7MB
+quay.io/sjfke/flask-lorem-ipsum   v0.1.0     8440e2c980ad   8 weeks ago   56.7MB
+python                            3-alpine   1e76e5659bd2   8 weeks ago   45.1MB
+python                            3          6f1289b1e6a1   8 weeks ago   911MB
+
+PS1> docker run -dt -p 8081:8080 --name "lazy-dog" quay.io/sjfke/flask-lorem-ipsum:v0.1.0
+b812f13cdcf00e2bdf12a324a9a84af9250f7a6fe02b915e1d570511eed9f188
+
+PS1> Invoke-WebRequest "http://localhost:8081" # check that it works.
+PS1> docker stop lazy-dog                      # stop the container
+PS1> docker rm lazy-dog                        # delete the container
 ```
+
+In this example [DockerHub](https://hub.docker.com/) is being used.
+
+First login into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `flask-lorem-ipsum`.
 
 ```bash
 $ podman login docker.io  # sjfke/password; use your own login and password :-)
 
 # Use your own DockerHub account (not mine, sjfke) :-)
-$ podman build --tag sjfke/ocp-sample-flask-docker -f ./Dockerfile        # tagged as latest
-$ podman build --tag sjfke/ocp-sample-flask-docker:v0.1.0 -f ./Dockerfile # tagged as v0.1.0
+$ podman build --tag sjfke/flask-lorem-ipsum -f ./Dockerfile        # tagged as latest
+$ podman build --tag sjfke/flask-lorem-ipsum:v0.1.0 -f ./Dockerfile # tagged as v0.1.0
 
 $ podman images  # notice the 'IMAGE ID' is the same 
 REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
-localhost/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  45 minutes ago  60.5 MB
-localhost/sjfke/ocp-sample-flask-docker  latest      67a7cd06b95d  45 minutes ago  60.5 MB
-localhost/quick-brown-fox                latest      67a7cd06b95d  45 minutes ago  60.5 MB
+localhost/flask-lorem-ipsum              latest      67a7cd06b95d  45 minutes ago  60.5 MB
 docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
 docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
 
-$ podman push sjfke/ocp-sample-flask-docker:v0.1.0 # push v0.1.0 image to DockerHub
-$ podman push sjfke/ocp-sample-flask-docker:latest # push latest image to DockerHub (v0.1.0 with latest tag)
+$ podman push sjfke/flask-lorem-ipsum:v0.1.0 # push v0.1.0 image to DockerHub
+$ podman push sjfke/flask-lorem-ipsum:latest # push latest image to DockerHub (v0.1.0 with latest tag)
 
-$ podman pull docker.io/sjfke/ocp-sample-flask-docker:v0.1.0 # Pull from DockerHub (docker.io - prefix)
-$ podman pull docker.io/sjfke/ocp-sample-flask-docker:latest # Pull from DockerHub (docker.io - prefix)
+$ podman pull docker.io/sjfke/flask-lorem-ipsum:v0.1.0 # Pull from DockerHub (docker.io - prefix)
 
 $ podman images  # notice the 'IMAGE ID' is the same 
 REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
 docker.io/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  49 minutes ago  60.5 MB
-localhost/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  49 minutes ago  60.5 MB
-localhost/sjfke/ocp-sample-flask-docker  latest      67a7cd06b95d  49 minutes ago  60.5 MB
+localhost/flask-lorem-ipsum              v0.1.0      67a7cd06b95d  49 minutes ago  60.5 MB
+localhost/flask-lorem-ipsum              latest      67a7cd06b95d  49 minutes ago  60.5 MB
 localhost/quick-brown-fox                latest      67a7cd06b95d  49 minutes ago  60.5 MB
 docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
 docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
 
-$ podman run -dt -p 8080:8080 --name 'cool_cat' docker.io/sjfke/ocp-sample-flask-docker:v0.1.0
+$ podman run -dt -p 8081:8080 --name 'cool-cat' docker.io/sjfke/ocp-sample-flask-docker:v0.1.0
 
 $ podman ps
 CONTAINER ID  IMAGE                                           COMMAND               CREATED         STATUS             PORTS                   NAMES
@@ -307,11 +320,11 @@ CONTAINER ID  IMAGE                                           COMMAND           
 $ curl localhost:8080       # test it works
 $ firefox 127.0.0.1:8080    # test it works
 
-$ podman stop cool_cat  
-$ podman rm cool_cat
+$ podman stop cool-cat  
+$ podman rm cool-cat
 
-$ podman stop cool_cat
-$ podman rm cool_cat
+$ podman stop cool-cat
+$ podman rm cool-cat
 $ podman ps
 CONTAINER ID  IMAGE       COMMAND     CREATED     STATUS      PORTS       NAMES
 
