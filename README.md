@@ -137,7 +137,7 @@ python       3          6f1289b1e6a1   2 days ago   911MB
 
 Notice how much bigger the `python:3` image is, so unless you require a full python environment, use the `python:3-alpine`.
 
-This project has been several iterations, so while the Docker image ID ought to be consistent in all the examples, please report any discrepancies. 
+This project has been several iterations, so while I have attempted to ensure all the Docker image ID's are consistent, if there are errors please report them. 
 
 ## Local Build and Test
 
@@ -171,19 +171,20 @@ $ podman run -dt -p 8081:8080/tcp --name 'lazy-dog' localhost/flask-lorem-ipsum
 PS1> docker run -dt -p 8081:8080 --name "lazy-dog" localhost/flask-lorem-ipsum
 ```
 
-Note omitting the `--name` in the `podman run` command, and it will be created using [Names Auto Generator](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go) 
-and also that different port numbers are used to emphasize which is the container port.
+Note omitting the `--name` in the `podman run` command, and the name will be created using [Names Auto Generator](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go). 
+Also note for clarity different port numbers are used, *8080* for the container, *8081* to access it, (many examples have the same port number for both).
 
 ### Check the Docker container is up and running.
 
 ```bash
 $ podman ps -a
-CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS             PORTS                   NAMES
-f3792a298b80  localhost/flask-lorem-ipsum:latest  /bin/sh -c gunico...  10 seconds ago  Up 11 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
+CONTAINER ID  IMAGE                               COMMAND               CREATED        STATUS            PORTS                   NAMES
+33f63e34672d  localhost/flask-lorem-ipsum:latest  /bin/sh -c gunico...  5 minutes ago  Up 5 minutes ago  0.0.0.0:8081->8080/tcp  lazy-dog
 
 $ podman top lazy-dog
 USER        PID         PPID        %CPU        ELAPSED          TTY         TIME        COMMAND
-1001        1           0           0.000       10m6.764894348s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
+1001        1           0           0.000       6m24.942961s     pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
+1001        2           1           0.000       6m23.943135481s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
 1001        2           1           0.000       10m5.764988831s  pts/0       0s          /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi 
 
 # Test fetching the application home page.
@@ -195,11 +196,11 @@ $ podman stop lazy-dog
 lazy_dog
 
 $ podman ps -a
-CONTAINER ID  IMAGE                             COMMAND               CREATED         STATUS                     PORTS                   NAMES
-f3792a298b80  localhost/flask-lorem-ipsum:latest  /bin/sh -c gunico...  11 minutes ago  Exited (0) 14 seconds ago  0.0.0.0:8080->8080/tcp  lazy_dog
+CONTAINER ID  IMAGE                               COMMAND               CREATED         STATUS                     PORTS                   NAMES
+33f63e34672d  localhost/flask-lorem-ipsum:latest  /bin/sh -c gunico...  10 minutes ago  Exited (0) 15 seconds ago  0.0.0.0:8081->8080/tcp  lazy-dog
 
 $ podman rm lazy-dog
-f3792a298b807a86a76932061175519537e9f311fdb8c1ad50cb3cd5fac41125
+33f63e34672d80ccbbdeea10e78a6819474951c90e8d4116c08f214df6fb06bf
 
 $ podman ps -a
 CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
@@ -242,9 +243,68 @@ You need an account on a public docker repository, such as:
 * [Quay.io User Guides](https://docs.quay.io/guides/)
 * [StackShare.IO: Alternatives to Docker Hub](https://stackshare.io/docker-hub/alternatives)
 
-In this example [Quay.io](https://quay.io/) is being used.
+In the first example [DockerHub](https://hub.docker.com/) is being used.
 
-First login into [Quay.io](https://quay.io/signin/), using your credentials, and create repository `flask-lorem-ipsum`.
+Login into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `flask-lorem-ipsum`.
+
+```bash
+$ podman login docker.io  # sjfke/password; use your own login and password :-)
+
+# Use your own DockerHub account (not mine, sjfke) :-)
+$ podman build --tag sjfke/flask-lorem-ipsum -f ./Dockerfile $PWD        # tagged as latest
+$ podman build --tag sjfke/flask-lorem-ipsum:v0.1.0 -f ./Dockerfile $PWD # tagged as v0.1.0
+
+$ podman images  # notice the 'IMAGE ID' is the same 
+REPOSITORY                         TAG         IMAGE ID      CREATED         SIZE
+localhost/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  22 minutes ago  59.3 MB
+localhost/flask-lorem-ipsum        latest      0ba8216e3bb4  22 minutes ago  59.3 MB
+docker.io/library/python           3-alpine    f773016f760e  3 months ago    48 MB
+docker.io/library/python           3           cba42c28d9b8  3 months ago    909 MB
+
+
+$ podman push sjfke/flask-lorem-ipsum:v0.1.0 # push v0.1.0 image to DockerHub
+$ podman push sjfke/flask-lorem-ipsum:latest # push latest image to DockerHub (v0.1.0 with latest tag)
+
+$ podman pull docker.io/sjfke/flask-lorem-ipsum:v0.1.0 # Pull from DockerHub (docker.io - prefix)
+
+$ podman images  # notice the 'IMAGE ID' is the same for the first three
+REPOSITORY                         TAG         IMAGE ID      CREATED         SIZE
+docker.io/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  26 minutes ago  59.3 MB
+localhost/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  26 minutes ago  59.3 MB
+localhost/flask-lorem-ipsum        latest      0ba8216e3bb4  26 minutes ago  59.3 MB
+docker.io/library/python           3-alpine    f773016f760e  3 months ago    48 MB
+docker.io/library/python           3           cba42c28d9b8  3 months ago    909 MB
+
+$ podman run -dt -p 8081:8080 --name 'cool-cat' docker.io/sjfke/ocp-sample-flask-docker:v0.1.0
+
+$ podman ps
+CONTAINER ID  IMAGE                                           COMMAND               CREATED         STATUS             PORTS                   NAMES
+3bf7447afb45  docker.io/sjfke/ocp-sample-flask-docker:v0.1.0  /bin/sh -c gunico...  31 seconds ago  Up 32 seconds ago  0.0.0.0:8081->8080/tcp  cool-cat
+
+$ curl localhost:8081       # test it works
+$ firefox 127.0.0.1:8081    # test it works
+
+$ podman stop cool-cat  
+$ podman rm cool-cat
+
+$ podman ps
+CONTAINER ID  IMAGE       COMMAND     CREATED     STATUS      PORTS       NAMES
+
+$ podman rmi docker.io/sjfke/flask-lorem-ipsum:v0.1.0 # delete docker.io version
+Untagged: docker.io/sjfke/flask-lorem-ipsum:v0.1.0
+
+$ podman images # now only 3 local images
+REPOSITORY                         TAG         IMAGE ID      CREATED         SIZE
+localhost/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  33 minutes ago  59.3 MB
+localhost/flask-lorem-ipsum        latest      0ba8216e3bb4  33 minutes ago  59.3 MB
+docker.io/library/python           3-alpine    f773016f760e  3 months ago    48 MB
+docker.io/library/python           3           cba42c28d9b8  3 months ago    909 MB
+```
+
+
+In the second example [Quay.io](https://quay.io/) is being used.
+
+Login into [Quay.io](https://quay.io/signin/), using your credentials, and create repository `flask-lorem-ipsum`.
 
 ```powershell
 PS1> docker login quay.io  # sjfke/password; use your own login and password :-)
@@ -286,64 +346,6 @@ PS1> docker stop lazy-dog                      # stop the container
 PS1> docker rm lazy-dog                        # delete the container
 ```
 
-In this example [DockerHub](https://hub.docker.com/) is being used.
-
-First login into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `flask-lorem-ipsum`.
-
-```bash
-$ podman login docker.io  # sjfke/password; use your own login and password :-)
-
-# Use your own DockerHub account (not mine, sjfke) :-)
-$ podman build --tag sjfke/flask-lorem-ipsum -f ./Dockerfile        # tagged as latest
-$ podman build --tag sjfke/flask-lorem-ipsum:v0.1.0 -f ./Dockerfile # tagged as v0.1.0
-
-$ podman images  # notice the 'IMAGE ID' is the same 
-REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
-localhost/flask-lorem-ipsum              latest      67a7cd06b95d  45 minutes ago  60.5 MB
-docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
-docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
-
-$ podman push sjfke/flask-lorem-ipsum:v0.1.0 # push v0.1.0 image to DockerHub
-$ podman push sjfke/flask-lorem-ipsum:latest # push latest image to DockerHub (v0.1.0 with latest tag)
-
-$ podman pull docker.io/sjfke/flask-lorem-ipsum:v0.1.0 # Pull from DockerHub (docker.io - prefix)
-
-$ podman images  # notice the 'IMAGE ID' is the same 
-REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
-docker.io/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  49 minutes ago  60.5 MB
-localhost/flask-lorem-ipsum              v0.1.0      67a7cd06b95d  49 minutes ago  60.5 MB
-localhost/flask-lorem-ipsum              latest      67a7cd06b95d  49 minutes ago  60.5 MB
-localhost/quick-brown-fox                latest      67a7cd06b95d  49 minutes ago  60.5 MB
-docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
-docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
-
-$ podman run -dt -p 8081:8080 --name 'cool-cat' docker.io/sjfke/ocp-sample-flask-docker:v0.1.0
-
-$ podman ps
-CONTAINER ID  IMAGE                                           COMMAND               CREATED         STATUS             PORTS                   NAMES
-06b1e7181459  docker.io/sjfke/ocp-sample-flask-docker:v0.1.0  /bin/sh -c gunico...  10 seconds ago  Up 10 seconds ago  0.0.0.0:8080->8080/tcp  cool_cat
-
-$ curl localhost:8080       # test it works
-$ firefox 127.0.0.1:8080    # test it works
-
-$ podman stop cool-cat  
-$ podman rm cool-cat
-
-$ podman stop cool-cat
-$ podman rm cool-cat
-$ podman ps
-CONTAINER ID  IMAGE       COMMAND     CREATED     STATUS      PORTS       NAMES
-
-$ podman rmi docker.io/sjfke/ocp-sample-flask-docker:v0.1.0  # delete docker.io version
-$ podman images # now only 3 local images
-REPOSITORY                               TAG         IMAGE ID      CREATED         SIZE
-localhost/sjfke/ocp-sample-flask-docker  v0.1.0      67a7cd06b95d  59 minutes ago  60.5 MB
-localhost/sjfke/ocp-sample-flask-docker  latest      67a7cd06b95d  59 minutes ago  60.5 MB
-localhost/quick-brown-fox                latest      67a7cd06b95d  59 minutes ago  60.5 MB
-docker.io/library/python                 3-alpine    f773016f760e  5 days ago      48 MB
-docker.io/library/python                 3           cba42c28d9b8  5 days ago      909 MB
-```
-
 ## Deployment Steps
 
 The deployment was tested using *Red Hat CodeReady Containers* (CRC) details of which can be found here:
@@ -356,29 +358,29 @@ To obtain the default CRC ``kubeadmin`` password, run ``crc console --credential
 
 ```bash
 $ oc login -u kubeadmin -p <password> https://api.crc.testing:6443
-$ oc whoami                                                    # kubeadmin
-$ oc new-project work911
-$ oc project              # check project is work911
+$ oc whoami               # kubeadmin
+$ oc new-project work911  # create the work911 project
+$ oc project              # check the project is work911
 Using project "work911" on server "https://api.crc.testing:6443".
 
 $ podman images
-REPOSITORY                               TAG       IMAGE ID      CREATED       SIZE
-docker.io/sjfke/ocp-sample-flask-docker  latest    a0b942e81674  14 hours ago  59.3 MB
-localhost/sjfke/ocp-sample-flask-docker  latest    a0b942e81674  14 hours ago  59.3 MB
-localhost/quick-brown-fox                latest    a0b942e81674  14 hours ago  59.3 MB
-docker.io/library/python                 3-alpine  1ae28589e5d4  12 days ago   47.6 MB
-docker.io/library/python                 3         49e3c70d884f  2 weeks ago   909 MB
+REPOSITORY                         TAG         IMAGE ID      CREATED       SIZE
+docker.io/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  3 hours ago   59.3 MB
+localhost/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  3 hours ago   59.3 MB
+localhost/flask-lorem-ipsum        latest      0ba8216e3bb4  3 hours ago   59.3 MB
+docker.io/library/python           3-alpine    f773016f760e  3 months ago  48 MB
+docker.io/library/python           3           cba42c28d9b8  3 months ago  909 MB
 
-$ oc new-app docker.io/sjfke/ocp-sample-flask-docker
+$ oc new-app docker.io/sjfke/flask-lorem-ipsum
 $ oc status
-$ oc expose service/ocp-sample-flask-docker  # route.route.openshift.io/ocp-sample-flask-docker exposed
+$ oc expose service/flask-lorem-ipsum  # route.route.openshift.io/flask-lorem-ipsum exposed
 ```
 Once the application deployment is finished then it will be accessible as [ocp-sample-flask-docker](http://ocp-sample-flask-docker-work911.apps-crc.testing).
 
 ```bash
 $ oc get all | egrep "HOST/PORT|route.route" # HOST/PORT column provides the URL
-$ curl http://ocp-sample-flask-docker-work911.apps-crc.testing
-$ firefox http://ocp-sample-flask-docker-work911.apps-crc.testing
+$ curl http://flask-lorem-ipsum-work911.apps-crc.testing
+$ firefox http://flask-lorem-ipsum-work911.apps-crc.testing
 ```
 
 Checking the pod from OpenShift command-line:
