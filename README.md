@@ -5,7 +5,7 @@ This repository provides a simple Python web application implemented using the F
 [Podman](https://podman.io/) whose command-line very similar to [Docker](https://docs.docker.com/get-started/overview/) 
 in fact the suggestion in the documentation is to ``$ alias docker=podman #`` for compatibility with Docker scripts.
 
-However there are some differences, so building the docker image is also demonstrated with [Docker for Windows](https://docs.docker.com/desktop/windows/install/) on
+However, there are some minor differences, so building the docker image is also demonstrated with [Docker for Windows](https://docs.docker.com/desktop/windows/install/) on
  *Windows 10 Home edition* where only ```WSL 2``` is available. With *Windows 10 Pro* you can choose to use a 
  [Hyper-V backend](https://allthings.how/how-to-install-docker-on-windows-10/) or ```WSL 2```.
 
@@ -33,6 +33,8 @@ been modified to work [Green Unicorn - WSGI sever](https://docs.gunicorn.org/en/
 changed to provide some [Lorem Ipsum](https://en.wikipedia.org/wiki/Lorem_ipsum) pages from [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/), 
 and `isalive` and `isready` probe pages have been added for OpenShift (Kubernetes).
 
+Suggestion, there are many other *Lorem Ipsum* themes on [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/), so try adding a few more examples to be more comfortable with Flask.
+
 Other useful references:
 
 * [RedHat: Getting Started With Python](https://www.openshift.com/blog/getting-started-python)
@@ -52,6 +54,10 @@ there are some minor differences, so both are illustrated. In [Fedora 35 docker]
  
 
 ## Docker File
+
+A simple *Docker file* which uses a , ```python:3-alpine``` container, it first *pip installs* the required applications specified 
+in the *requirements.txt* file, copies the application files, and finally, sets up the environment and 
+starts *gunicorn*.
 
 ```bash
 FROM python:3-alpine
