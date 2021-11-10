@@ -1,4 +1,4 @@
-# Podman built Flask Docker container, deployed to OpenShift
+# Build Flask Docker container and deploy to OpenShift
 
 This repository provides a simple Python web application implemented using the Flask web framework and executed using 
 ``gunicorn``. It is intended to be used to demonstrate deployment of Python web applications to OpenShift 4 using 
@@ -233,9 +233,10 @@ PS1> docker ps -a
 CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 ```
 
-## Docker Build and Test
+## Remote Build and Test
 
 This is based on [Publish Container Images to Docker Hub / Image registry with Podman](https://computingforgeeks.com/how-to-publish-docker-image-to-docker-hub-with-podman/)
+
 You need an account on a public docker repository, such as:
 
 * [Register for a Docker ID](https://docs.docker.com/docker-id/)
@@ -243,7 +244,7 @@ You need an account on a public docker repository, such as:
 * [Quay.io User Guides](https://docs.quay.io/guides/)
 * [StackShare.IO: Alternatives to Docker Hub](https://stackshare.io/docker-hub/alternatives)
 
-In the first example [DockerHub](https://hub.docker.com/) is being used.
+### [DockerHub](https://hub.docker.com/) Build and Test using Podman.
 
 Login into [DockerHub](https://hub.docker.com/), using your credentials, and create repository `flask-lorem-ipsum`.
 
@@ -264,6 +265,7 @@ docker.io/library/python           3           cba42c28d9b8  3 months ago    909
 
 $ podman push sjfke/flask-lorem-ipsum:v0.1.0 # push v0.1.0 image to DockerHub
 $ podman push sjfke/flask-lorem-ipsum:latest # push latest image to DockerHub (v0.1.0 with latest tag)
+The push refers to repository [docker.io/sjfke/flask-lorem-ipsum]
 
 $ podman pull docker.io/sjfke/flask-lorem-ipsum:v0.1.0 # Pull from DockerHub (docker.io - prefix)
 
@@ -302,7 +304,7 @@ docker.io/library/python           3           cba42c28d9b8  3 months ago    909
 ```
 
 
-In the second example [Quay.io](https://quay.io/) is being used.
+### [Quay.io](https://quay.io/) Build and Test using Docker.
 
 Login into [Quay.io](https://quay.io/signin/), using your credentials, and create repository `flask-lorem-ipsum`.
 
@@ -346,7 +348,7 @@ PS1> docker stop lazy-dog                      # stop the container
 PS1> docker rm lazy-dog                        # delete the container
 ```
 
-## Deployment Steps
+## OpenShift Deployment Steps
 
 The deployment was tested using *Red Hat CodeReady Containers* (CRC) details of which can be found here:
 
@@ -364,16 +366,15 @@ $ oc project              # check the project is work911
 Using project "work911" on server "https://api.crc.testing:6443".
 
 $ podman images
-REPOSITORY                         TAG         IMAGE ID      CREATED       SIZE
-docker.io/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  3 hours ago   59.3 MB
-localhost/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  3 hours ago   59.3 MB
-localhost/flask-lorem-ipsum        latest      0ba8216e3bb4  3 hours ago   59.3 MB
+docker.io/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  42 hours ago  59.3 MB
+localhost/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  42 hours ago  59.3 MB
+localhost/flask-lorem-ipsum        latest      0ba8216e3bb4  42 hours ago  59.3 MB
 docker.io/library/python           3-alpine    f773016f760e  3 months ago  48 MB
 docker.io/library/python           3           cba42c28d9b8  3 months ago  909 MB
 
-$ oc new-app docker.io/sjfke/flask-lorem-ipsum
+$ oc new-app docker.io/sjfke/flask-lorem-ipsum:v0.1.0
 $ oc status
-$ oc expose service/flask-lorem-ipsum  # route.route.openshift.io/flask-lorem-ipsum exposed
+$ oc expose service/flask-lorem-ipsum ## route.route.openshift.io/flask-lorem-ipsum exposed
 ```
 Once the application deployment is finished then it will be accessible as [ocp-sample-flask-docker](http://ocp-sample-flask-docker-work911.apps-crc.testing).
 
@@ -387,95 +388,38 @@ Checking the pod from OpenShift command-line:
 
 ```bash
 $ oc get pods
-NAME                                       READY   STATUS    RESTARTS   AGE
-ocp-sample-flask-docker-7f54d777d8-lxlpj   1/1     Running   0          3m32s
+NAME                                 READY   STATUS    RESTARTS   AGE
+flask-lorem-ipsum-65db845bb9-7jz98   1/1     Running   0          3m44s
 
-$ oc logs ocp-sample-flask-docker-7f54d777d8-lxlpj         # get pod log
-$ oc describe pod ocp-sample-flask-docker-7f54d777d8-lxlpj # get pod description
-$ oc rsh ocp-sample-flask-docker-7f54d777d8-lxlpj          # login shell on pod
-$ oc rsh ocp-sample-flask-docker-7f54d777d8-lxlpj ps -ef   # run 'ps -ef' on pod, note 2x gunicorn/wsgi
+$ oc logs flask-lorem-ipsum-65db845bb9-7jz98
+[2021-11-10 10:32:22 +0000] [1] [INFO] Starting gunicorn 20.1.0
+[2021-11-10 10:32:22 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+[2021-11-10 10:32:22 +0000] [1] [INFO] Using worker: sync
+[2021-11-10 10:32:22 +0000] [8] [INFO] Booting worker with pid: 8
+
+$ oc describe pod flask-lorem-ipsum-65db845bb9-7jz98
+
+$ oc rsh flask-lorem-ipsum-65db845bb9-7jz98
+/usr/src/app $ exit
+$ oc rsh flask-lorem-ipsum-65db845bb9-7jz98 ps -ef
 PID   USER     TIME  COMMAND
-    1 10006500  0:00 {gunicorn} /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
-    9 10006500  0:00 {gunicorn} /usr/local/bin/python /usr/local/bin/gunicorn -b 0.0.0.0:8080 wsgi
-   18 10006500  0:00 /bin/sh
-   25 10006500  0:00 ps -ef
+    1 10006200  0:00 {gunicorn} /usr/local/bin/python /usr/local/bin/gunicorn -
+    8 10006200  0:00 {gunicorn} /usr/local/bin/python /usr/local/bin/gunicorn -
+   24 10006200  0:00 ps -ef
 $
 ```
 
 Checking the pod from the OpenShift Console WebUI:
 
-* From *Builds* check the build log file, to see what is happening
-* From *Services* link, you can access the Pod, and even open a terminal on the Pod.
+* ![Image flask-lorem-ipsum WEB](./screenshots/flask-lorem-ipsum.png)
+* ![Image flask-lorem-ipsum POD](./screenshots/flask-lorem-ipsum-pod.png)
 
 
 ## Undeployment Steps
 
 ```bash
-$ oc get all --selector app=ocp-sample-flask-docker     # list everything associated with the app
-$ oc delete all --selector app=ocp-sample-flask-docker  # delete everything associated with the app
-$ oc delete project work911                             # delete the work911 project
+$ oc get all --selector app=flask-lorem-ipsum    # list everything associated with the app
+$ oc delete all --selector app=flask-lorem-ipsum # delete everything associated with the app
+$ oc delete project work911                      # delete the work911 project
 ```
 
-## Example output from various commands
-
-### Output of `oc new-app docker.io/sjfke/ocp-sample-flask-docker`
-
-```bash
-$ oc new-app docker.io/sjfke/ocp-sample-flask-docker
---> Found container image 330d76f (3 days old) from docker.io for "docker.io/sjfke/ocp-sample-flask-docker"
-
-    Lorem Ipsum 
-    ----------- 
-    Lorem Ipsum Flask Application for Docker
-
-    Tags: Lorem Ipsum, 0.1.0, Flask
-
-    * An image stream tag will be created as "ocp-sample-flask-docker:latest" that will track this image
-
---> Creating resources ...
-    imagestream.image.openshift.io "ocp-sample-flask-docker" created
-    deployment.apps "ocp-sample-flask-docker" created
-    service "ocp-sample-flask-docker" created
---> Success
-    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
-     'oc expose service/ocp-sample-flask-docker' 
-    Run 'oc status' to view your app.
-```
-
-### Output of `oc status` after ``oc expose service/ocp-sample-flask-docker``
-
-```bash
-$ oc status
-In project work911 on server https://api.crc.testing:6443
-
-http://ocp-sample-flask-docker-work911.apps-crc.testing to pod port 8080-tcp (svc/ocp-sample-flask-docker)
-  deployment/ocp-sample-flask-docker deploys istag/ocp-sample-flask-docker:latest 
-    deployment #2 running for 3 minutes - 1 pod
-    deployment #1 deployed 3 minutes ago
-
-
-1 info identified, use 'oc status --suggest' to see details.
-```
-
-### Output of `oc get all`
-
-```bash
-$ oc get all
-NAME                                           READY   STATUS    RESTARTS   AGE
-pod/ocp-sample-flask-docker-7f54d777d8-5q6ds   1/1     Running   0          5m8s
-
-NAME                              TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)    AGE
-service/ocp-sample-flask-docker   ClusterIP   10.217.4.13   <none>        8080/TCP   5m10s
-
-NAME                                      READY   UP-TO-DATE   AVAILABLE   AGE
-deployment.apps/ocp-sample-flask-docker   1/1     1            1           5m10s
-
-NAME                                                 DESIRED   CURRENT   READY   AGE
-replicaset.apps/ocp-sample-flask-docker-548cbcf4c7   0         0         0       5m10s
-replicaset.apps/ocp-sample-flask-docker-7f54d777d8   1         1         1       5m8s
-
-NAME                                                     IMAGE REPOSITORY                                                                          TAGS     UPDATED
-imagestream.image.openshift.io/ocp-sample-flask-docker   default-route-openshift-image-registry.apps-crc.testing/work911/ocp-sample-flask-docker   latest   5 minutes ago
-
-NAME                                               HOST/PORT                                          PATH   SERVICES                  PORT       TERMINATION   WILDCARD
-route.route.openshift.io/ocp-sample-flask-docker   ocp-sample-flask-docker-work911.apps-crc.testing          ocp-sample-flask-docker   8080-tcp                 None```
