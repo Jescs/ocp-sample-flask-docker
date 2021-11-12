@@ -2,30 +2,26 @@
 <html lang="en">
   <head>
     <title>{% block title %}{% endblock %}</title>
-    <!-- Bootstrap core CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom styles for this template -->
-    <link href="https://getbootstrap.com/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
+    <!-- Bootstrap 4 core CSS https://www.w3schools.com/bootstrap4/default.asp -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   </head>
   <body>
-    <div class="container">
-      <div class="header clearfix">
-        <nav>
-          <ul class="nav nav-pills pull-right">
-            <li role="presentation"><a href="/">Home</a></li>
-            <li role="presentation"><a href="/pirate">Pirate</a></li>
-            <li role="presentation"><a href="/zombie">Zombie</a></li>
-            <li role="presentation"><a href="/legal">Legal</a></li>
-            <li role="presentation"><a href="http://flask.pocoo.org" target="_blank">More About Flask</a></li>
+      <div class="container">
+          <ul class="nav">
+              <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+              <li class="nav-item"><a class="nav-link" href="/pirate">Pirate</a></li>
+              <li class="nav-item"><a class="nav-link" href="/zombie">Zombie</a></li>
+              <li class="nav-item"><a class="nav-link" href="/legal">Legal</a></li>
+              <li class="nav-item"><a class="nav-link" href="https://flask.palletsprojects.com/en/2.0.x/" target="_blank">More About Flask</a></li>
           </ul>
-        </nav>
-      </div>
-      {% block body %}
-      {% endblock %}
+          <div class="jumbotron">
+              {% block body %}
+              {% endblock %}
+          </div> <!-- /jumbotron -->
       <footer class="footer">
         <p>Version: 0.1.0</p>
         <p>© <a href="https://www.gnu.org/licenses/gpl-3.0.html">Copyright 2021, Geoffrey Collis (sjfke)</a></p>
       </footer>
-    </div> <!-- /container -->
+      </div> <!-- /container -->
   </body>
 </html>
