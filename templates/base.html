@@ -2,8 +2,13 @@
 <html lang="en">
   <head>
     <title>{% block title %}{% endblock %}</title>
-    <!-- Bootstrap 4 core CSS https://www.w3schools.com/bootstrap4/default.asp -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <!-- Bootstrap 4 core CSS https://www.w3schools.com/bootstrap4/default.asp -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <!-- https://bootstrap.themes.guide/#themes -->
+        <!-- https://stackoverflow.com/questions/25034812/use-a-css-stylesheet-on-a-jinja2-template/25034903 -->
+        <!-- <link rel="stylesheet" href="{{ url_for('static', filename='darkster.theme.min.css') }}"/> -->
+        <!-- <link rel="stylesheet" href="{{ url_for('static', filename='hootstrap.theme.min.css') }}"/> -->
+        <!-- <link rel="stylesheet" href="{{ url_for('static', filename='tequila.theme.min.css') }}"/> -->
   </head>
   <body>
       <div class="container">

@@ -13,11 +13,14 @@ Application's Key files:
 
 * config.py: GUNICORN settings;
 * wsgi.py: define the pages (routes) that are visible;
+* static: three bootstrap themes from [Bootstrap 4 themes](https://bootstrap.themes.guide/#themes)
 * templates/base.html: boiler-plate for html pages;
 * templates/index.html: Standard Lorem Ipsum;
 * templates/legal.html: Legal-style Lorem Ipsum;
 * templates/pirate.html: Pirate-style Lorem Ipsum;
 * templates/zombie.html: Zombie-style Lorem Ipsum
+
+None of the bootstrap themes are enabled be default, edit ``templates/base.html`` to activate them.
 
 ## Implementation Notes
 

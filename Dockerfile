@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # TODO (optional): Copy the builder files into /opt/app-root
 # COPY ./<builder_folder>/ /opt/app-root/
 COPY config.py ./
+COPY static/* ./static/
 COPY templates/* ./templates/
 COPY wsgi.py ./
 
