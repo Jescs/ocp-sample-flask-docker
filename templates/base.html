@@ -6,26 +6,35 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
         <!-- https://bootstrap.themes.guide/#themes -->
         <!-- https://stackoverflow.com/questions/25034812/use-a-css-stylesheet-on-a-jinja2-template/25034903 -->
+        <!-- <link rel="stylesheet" href="{{ url_for('static', filename='blue-voltage-theme.min.css') }}"/> -->
+        <!-- <link rel="stylesheet" href="{{ url_for('static', filename='boldstrap-theme.min.css') }}"/> -->
+        <!-- <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-purple-theme.min.css') }}"/> -->
         <!-- <link rel="stylesheet" href="{{ url_for('static', filename='darkster.theme.min.css') }}"/> -->
+        <!-- <link rel="stylesheet" href="{{ url_for('static', filename='fresca-theme.min.css') }}"/> -->
         <!-- <link rel="stylesheet" href="{{ url_for('static', filename='hootstrap.theme.min.css') }}"/> -->
+        <!-- <link rel="stylesheet" href="{{ url_for('static', filename='signal-theme.min.css') }}"/> -->
         <!-- <link rel="stylesheet" href="{{ url_for('static', filename='tequila.theme.min.css') }}"/> -->
   </head>
-  <body>
-      <div class="container">
-          <ul class="nav">
-              <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-              <li class="nav-item"><a class="nav-link" href="/pirate">Pirate</a></li>
-              <li class="nav-item"><a class="nav-link" href="/zombie">Zombie</a></li>
-              <li class="nav-item"><a class="nav-link" href="/legal">Legal</a></li>
-              <li class="nav-item"><a class="nav-link" href="https://flask.palletsprojects.com/en/2.0.x/" target="_blank">More About Flask</a></li>
-          </ul>
-          <div class="jumbotron">
+  <body class="bg-primary">
+      <div class="container bg-primary">
+          <nav class="navbar navbar-expand-md navbar-light bg-primary mb-3">
+              <ul class="navbar-nav ml-auto">
+                  <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                  <li class="nav-item"><a class="nav-link" href="/pirate">Pirate</a></li>
+                  <li class="nav-item"><a class="nav-link" href="/zombie">Zombie</a></li>
+                  <li class="nav-item"><a class="nav-link" href="/legal">Legal</a></li>
+                  <li class="nav-item"><a class="nav-link" href="https://flask.palletsprojects.com/en/2.0.x/" target="_blank">More About Flask</a></li>
+              </ul>
+          </nav>
+          {% block head %}
+          {% endblock %}
+          <div class="container bg-info">
               {% block body %}
               {% endblock %}
-          </div> <!-- /jumbotron -->
-      <footer class="footer">
-        <p>Version: 0.1.0</p>
-        <p>© <a href="https://www.gnu.org/licenses/gpl-3.0.html">Copyright 2021, Geoffrey Collis (sjfke)</a></p>
+          </div> <!-- /container -->
+      <footer class="footer bg-primary">
+        <p class="text-secondary">Version: 0.1.0</p>
+        <p class="text-secondary">© <a class="text-secondary" href="https://www.gnu.org/licenses/gpl-3.0.html">Copyright 2021, Geoffrey Collis (sjfke)</a></p>
       </footer>
       </div> <!-- /container -->
   </body>

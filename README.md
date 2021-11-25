@@ -13,8 +13,8 @@ Application's Key files:
 
 * config.py: GUNICORN settings;
 * wsgi.py: define the pages (routes) that are visible;
-* static: three bootstrap themes from [Bootstrap 4 themes](https://bootstrap.themes.guide/#themes)
-* templates/base.html: boiler-plate for html pages;
+* static: several bootstrap themes from [Bootstrap 4 themes](https://bootstrap.themes.guide/#themes)
+* templates/base.html: boiler-plate for all html pages;
 * templates/index.html: Standard Lorem Ipsum;
 * templates/legal.html: Legal-style Lorem Ipsum;
 * templates/pirate.html: Pirate-style Lorem Ipsum;
@@ -31,12 +31,12 @@ need to be satisfied for this to work are:
 * The WSGI application entry point within the code file needs to be named ``application``.
 * The ``gunicorn`` package must be listed in the ``requirements.txt`` file for ``pip``.
 
-The example is based on [Getting Started with Flask](https://scotch.io/tutorials/getting-started-with-flask-a-python-microframework) but has 
-been modified to work [Green Unicorn - WSGI sever](https://docs.gunicorn.org/en/stable/) and the content of the web-site 
+The example is derived from [Getting Started with Flask](https://scotch.io/tutorials/getting-started-with-flask-a-python-microframework) but has 
+been modified to use [BootStrap 4](https://getbootstrap.com/docs/4.6/getting-started/introduction/), work [Green Unicorn - WSGI sever](https://docs.gunicorn.org/en/stable/) and the content of the web-site 
 changed to provide some [Lorem Ipsum](https://en.wikipedia.org/wiki/Lorem_ipsum) pages from [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/), 
 and `isalive` and `isready` probe pages have been added for OpenShift (Kubernetes).
 
-Suggestion, there are many other *Lorem Ipsum* themes on [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/), so try adding a few more examples to be more comfortable with Flask.
+Suggestion, there are many other *Lorem Ipsum* themes on [Lorem IPsum Generators - The 14 Best](https://digital.com/lorem-ipsum-generators/), so try adding a few more examples to become more comfortable with Flask.
 
 Other useful references:
 
