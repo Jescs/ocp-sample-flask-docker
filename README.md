@@ -78,7 +78,6 @@ LABEL io.k8s.name="Flask" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="Lorem Ipsum,0.1.0,Flask"
 
-
 ENV PORT=8080
 WORKDIR /usr/src/app
 
@@ -88,6 +87,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # TODO (optional): Copy the builder files into /opt/app-root
 # COPY ./<builder_folder>/ /opt/app-root/
 COPY config.py ./
+COPY static/* ./static/
 COPY templates/* ./templates/
 COPY wsgi.py ./
 
@@ -177,7 +177,7 @@ PS1> docker run -dt -p 8081:8080 --name "lazy-dog" localhost/flask-lorem-ipsum
 Note omitting the `--name` in the `podman run` command, and the name will be created using [Names Auto Generator](https://github.com/moby/moby/blob/master/pkg/namesgenerator/names-generator.go). 
 Also note for clarity different port numbers are used, *8080* for the container, *8081* to access it, (many examples have the same port number for both).
 
-### Check the Docker container is up and running.
+### Check the Docker container is running and working.
 
 ```bash
 $ podman ps -a
