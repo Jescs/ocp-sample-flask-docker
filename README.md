@@ -255,36 +255,41 @@ Login into [DockerHub](https://hub.docker.com/), using your credentials, and cre
 $ podman login docker.io  # sjfke/password; use your own login and password :-)
 
 # Use your own DockerHub account (not mine, sjfke) :-)
-$ podman build --tag sjfke/flask-lorem-ipsum -f ./Dockerfile $PWD        # tagged as latest
-$ podman build --tag sjfke/flask-lorem-ipsum:v0.1.0 -f ./Dockerfile $PWD # tagged as v0.1.0
+$ podman build --tag sjfke/flask-lorem-ipsum -f ./Dockerfile $PWD              # tagged as latest
+$ podman build --tag docker.io/sjfke/flask-lorem-ipsum:v0.1.0 -f ./Dockerfile $PWD # tagged as v0.1.0
 
 $ podman images  # notice the 'IMAGE ID' is the same 
 REPOSITORY                         TAG         IMAGE ID      CREATED         SIZE
-localhost/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  22 minutes ago  59.3 MB
-localhost/flask-lorem-ipsum        latest      0ba8216e3bb4  22 minutes ago  59.3 MB
-docker.io/library/python           3-alpine    f773016f760e  3 months ago    48 MB
-docker.io/library/python           3           cba42c28d9b8  3 months ago    909 MB
+docker.io/sjfke/flask-lorem-ipsum  v0.1.0      ea597a82070a  34 seconds ago  60.3 MB
+localhost/sjfke/flask-lorem-ipsum  latest      ea597a82070a  34 seconds ago  60.3 MB
+docker.io/library/python           3-alpine    f773016f760e  4 months ago    48 MB
+docker.io/library/python           3           cba42c28d9b8  4 months ago    909 MB
 
-
-$ podman push sjfke/flask-lorem-ipsum:v0.1.0 # push v0.1.0 image to DockerHub
+$ podman push docker.io/sjfke/flask-lorem-ipsum:v0.1.0 # push v0.1.0 image to DockerHub
 $ podman push sjfke/flask-lorem-ipsum:latest # push latest image to DockerHub (v0.1.0 with latest tag)
 The push refers to repository [docker.io/sjfke/flask-lorem-ipsum]
 
 $ podman pull docker.io/sjfke/flask-lorem-ipsum:v0.1.0 # Pull from DockerHub (docker.io - prefix)
+$ podman pull docker.io/sjfke/flask-lorem-ipsum:latest
 
+# Notice, docker.io prefix on latest, but all 3 are the same (same IMAGE ID) 
 $ podman images  # notice the 'IMAGE ID' is the same for the first three
-REPOSITORY                         TAG         IMAGE ID      CREATED         SIZE
-docker.io/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  26 minutes ago  59.3 MB
-localhost/sjfke/flask-lorem-ipsum  v0.1.0      0ba8216e3bb4  26 minutes ago  59.3 MB
-localhost/flask-lorem-ipsum        latest      0ba8216e3bb4  26 minutes ago  59.3 MB
-docker.io/library/python           3-alpine    f773016f760e  3 months ago    48 MB
-docker.io/library/python           3           cba42c28d9b8  3 months ago    909 MB
+REPOSITORY                         TAG         IMAGE ID      CREATED        SIZE
+docker.io/sjfke/flask-lorem-ipsum  latest      ea597a82070a  4 minutes ago  60.3 MB
+docker.io/sjfke/flask-lorem-ipsum  v0.1.0      ea597a82070a  4 minutes ago  60.3 MB
+localhost/sjfke/flask-lorem-ipsum  latest      ea597a82070a  4 minutes ago  60.3 MB
+docker.io/library/python           3-alpine    f773016f760e  4 months ago   48 MB
+docker.io/library/python           3           cba42c28d9b8  4 months ago   909 MB
 
-$ podman run -dt -p 8081:8080 --name 'cool-cat' docker.io/sjfke/ocp-sample-flask-docker:v0.1.0
+# Notice it pulls from dockerhub even though it has a local copy.
+$ podman run -dt -p 8081:8080 --name 'cool-cat' docker.io/sjfke/flask-lorem-ipsum:v0.1.0
+Trying to pull docker.io/sjfke/flask-lorem-ipsum:v0.1.0...
+Getting image source signatures
+
 
 $ podman ps
-CONTAINER ID  IMAGE                                           COMMAND               CREATED         STATUS             PORTS                   NAMES
-3bf7447afb45  docker.io/sjfke/ocp-sample-flask-docker:v0.1.0  /bin/sh -c gunico...  31 seconds ago  Up 32 seconds ago  0.0.0.0:8081->8080/tcp  cool-cat
+CONTAINER ID  IMAGE                                     COMMAND               CREATED             STATUS                 PORTS                   NAMES
+72498ce2eb56  docker.io/sjfke/flask-lorem-ipsum:v0.1.0  /bin/sh -c gunico...  About a minute ago  Up About a minute ago  0.0.0.0:8081->8080/tcp  cool-cat
 
 $ curl localhost:8081       # test it works
 $ firefox 127.0.0.1:8081    # test it works
