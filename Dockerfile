@@ -1,4 +1,4 @@
-FROM python
+FROM python:3-alpine
 # TODO: Put the maintainer name in the image metadata
 # MAINTAINER Your Name <your@email.com>
 
